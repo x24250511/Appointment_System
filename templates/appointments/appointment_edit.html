@@ -1,0 +1,132 @@
+{% extends 'base.html' %}
+
+{% block title %}Edit Appointment - SecureFlow{% endblock %}
+
+{% block extra_css %}
+<style>
+    .sidebar {
+        min-height: 100vh;
+        background: linear-gradient(135deg, var(--primary-navy) 0%, var(--secondary-blue) 100%);
+    }
+
+    .sidebar a {
+        color: rgba(255, 255, 255, 0.8);
+        padding: 15px 20px;
+        display: block;
+        text-decoration: none;
+        transition: 0.3s;
+    }
+
+    .sidebar a:hover,
+    .sidebar a.active {
+        background: rgba(255, 255, 255, 0.1);
+        color: white;
+    }
+
+    .main-content {
+        padding: 30px;
+    }
+
+    .form-card {
+        background: white;
+        border-radius: 12px;
+        padding: 30px;
+        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <div class="row">
+        <!-- Sidebar -->
+        <div class="col-md-2 sidebar text-white p-0">
+            <div class="p-4">
+                <h4 class="mb-4">
+                    <i class="bi bi-shield-check"></i> SecureFlow
+                </h4>
+            </div>
+            <nav>
+                <a href="{% url 'dashboard' %}">
+                    <i class="bi bi-speedometer2"></i> Dashboard
+                </a>
+                <a href="{% url 'appointment_list' %}" class="active">
+                    <i class="bi bi-calendar3"></i> Appointments
+                </a>
+                <a href="{% url 'appointment_create' %}">
+                    <i class="bi bi-plus-circle"></i> New Appointment
+                </a>
+                <a href="{% url 'profile' %}">
+                    <i class="bi bi-person"></i> Profile
+                </a>
+                <a href="{% url 'home' %}">
+                    <i class="bi bi-house"></i> Home
+                </a>
+                <a href="{% url 'logout_view' %}">
+                    <i class="bi bi-box-arrow-right"></i> Logout
+                </a>
+            </nav>
+        </div>
+
+        <!-- Main Content -->
+        <div class="col-md-10 main-content">
+            <h2 class="mb-4">Edit Appointment</h2>
+
+            {% if messages %}
+            {% for message in messages %}
+            <div class="alert alert-{{ message.tags }} alert-dismissible fade show">
+                {{ message }}
+                <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+            </div>
+            {% endfor %}
+            {% endif %}
+
+            <div class="form-card">
+                <form method="POST" action="{% url 'appointment_edit' appointment.id %}">
+                    {% csrf_token %}
+
+                    <div class="mb-3">
+                        <label for="title" class="form-label">Appointment Title *</label>
+                        <input type="text" class="form-control" id="title" name="title" value="{{ appointment.title }}"
+                            required>
+                    </div>
+
+                    <div class="mb-3">
+                        <label for="description" class="form-label">Description *</label>
+                        <textarea class="form-control" id="description" name="description" rows="4"
+                            required>{{ appointment.description }}</textarea>
+                    </div>
+
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            <label for="appointment_date" class="form-label">Date *</label>
+                            <input type="date" class="form-control" id="appointment_date" name="appointment_date"
+                                value="{{ appointment.appointment_date|date:'Y-m-d' }}" required>
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <label for="appointment_time" class="form-label">Time *</label>
+                            <input type="time" class="form-control" id="appointment_time" name="appointment_time"
+                                value="{{ appointment.appointment_time|time:'H:i' }}" required>
+                        </div>
+                    </div>
+
+                    <div class="mb-4">
+                        <label for="location" class="form-label">Location *</label>
+                        <input type="text" class="form-control" id="location" name="location"
+                            value="{{ appointment.location }}" placeholder="City or full address" required>
+                    </div>
+
+                    <div class="d-flex gap-2">
+                        <button type="submit" class="btn btn-primary">
+                            <i class="bi bi-check-lg"></i> Save Changes
+                        </button>
+                        <a href="{% url 'appointment_detail_view' appointment.id %}" class="btn btn-outline-secondary">
+                            <i class="bi bi-x-lg"></i> Cancel
+                        </a>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

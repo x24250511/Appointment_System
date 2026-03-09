@@ -1,0 +1,142 @@
+{% extends 'base.html' %}
+
+{% block title %}Appointments - SecureFlow{% endblock %}
+
+{% block extra_css %}
+<style>
+    .sidebar {
+        min-height: 100vh;
+        background: linear-gradient(135deg, var(--primary-navy) 0%, var(--secondary-blue) 100%);
+    }
+
+    .sidebar a {
+        color: rgba(255, 255, 255, 0.8);
+        padding: 15px 20px;
+        display: block;
+        text-decoration: none;
+        transition: 0.3s;
+    }
+
+    .sidebar a:hover,
+    .sidebar a.active {
+        background: rgba(255, 255, 255, 0.1);
+        color: white;
+    }
+
+    .main-content {
+        padding: 30px;
+    }
+
+    .appointment-card {
+        background: white;
+        border-radius: 12px;
+        padding: 20px;
+        margin-bottom: 15px;
+        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+        transition: 0.3s;
+    }
+
+    .appointment-card:hover {
+        transform: translateY(-3px);
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <div class="row">
+        <!-- Sidebar -->
+        <div class="col-md-2 sidebar text-white p-0">
+            <div class="p-4">
+                <h4 class="mb-4">
+                    <i class="bi bi-shield-check"></i> SecureFlow
+                </h4>
+            </div>
+            <nav>
+                <a href="{% url 'dashboard' %}">
+                    <i class="bi bi-speedometer2"></i> Dashboard
+                </a>
+                <a href="{% url 'appointment_list' %}" class="active">
+                    <i class="bi bi-calendar3"></i> Appointments
+                </a>
+                <a href="{% url 'appointment_create' %}">
+                    <i class="bi bi-plus-circle"></i> New Appointment
+                </a>
+                <a href="{% url 'profile' %}">
+                    <i class="bi bi-person"></i> Profile
+                </a>
+                <a href="{% url 'home' %}">
+                    <i class="bi bi-house"></i> Home
+                </a>
+                <a href="{% url 'logout_view' %}">
+                    <i class="bi bi-box-arrow-right"></i> Logout
+                </a>
+            </nav>
+        </div>
+
+        <!-- Main Content -->
+        <div class="col-md-10 main-content">
+            <div class="d-flex justify-content-between align-items-center mb-4">
+                <h2>My Appointments</h2>
+                <a href="{% url 'appointment_create' %}" class="btn btn-primary">
+                    <i class="bi bi-plus-lg"></i> New Appointment
+                </a>
+            </div>
+
+            {% if messages %}
+            {% for message in messages %}
+            <div class="alert alert-{{ message.tags }} alert-dismissible fade show">
+                {{ message }}
+                <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+            </div>
+            {% endfor %}
+            {% endif %}
+
+            {% if appointments %}
+            {% for appointment in appointments %}
+            <div class="appointment-card">
+                <div class="row">
+                    <div class="col-md-8">
+                        <h5>{{ appointment.title }}</h5>
+                        <p class="text-muted mb-2">{{ appointment.description|truncatewords:20 }}</p>
+                        <p class="mb-1">
+                            <i class="bi bi-calendar"></i> {{ appointment.appointment_date|date:"F d, Y" }}
+                            <i class="bi bi-clock ms-3"></i> {{ appointment.appointment_time|time:"g:i A" }}
+                        </p>
+                        <p class="mb-0">
+                            <i class="bi bi-geo-alt"></i> {{ appointment.location }}
+                        </p>
+                    </div>
+                    <div class="col-md-4 text-end">
+                        <span class="badge bg-{{ appointment.status }} mb-3">
+                            {{ appointment.get_status_display }}
+                        </span>
+                        <div>
+                            <a href="{% url 'appointment_detail_view' appointment.id %}"
+                                class="btn btn-sm btn-outline-primary me-2">
+                                <i class="bi bi-eye"></i> View
+                            </a>
+                            <a href="{% url 'appointment_edit' appointment.id %}"
+                                class="btn btn-sm btn-outline-secondary">
+                                <i class="bi bi-pencil"></i> Edit
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            {% endfor %}
+            {% else %}
+            <div class="text-center py-5">
+                <i class="bi bi-calendar-x" style="font-size: 64px; color: #ccc;"></i>
+                <h4 class="mt-3">No appointments yet</h4>
+                <p class="text-muted">Create your first appointment to get started</p>
+                <a href="{% url 'appointment_create' %}" class="btn btn-primary mt-3">
+                    <i class="bi bi-plus-lg"></i> Create Appointment
+                </a>
+            </div>
+            {% endif %}
+        </div>
+    </div>
+</div>
+{% endblock %}

@@ -1,0 +1,136 @@
+{% extends 'base.html' %}
+
+{% block title %}Profile - SecureFlow{% endblock %}
+
+{% block extra_css %}
+<style>
+    .sidebar {
+        min-height: 100vh;
+        background: linear-gradient(135deg, var(--primary-navy) 0%, var(--secondary-blue) 100%);
+    }
+
+    .sidebar a {
+        color: rgba(255, 255, 255, 0.8);
+        padding: 15px 20px;
+        display: block;
+        text-decoration: none;
+        transition: 0.3s;
+    }
+
+    .sidebar a:hover,
+    .sidebar a.active {
+        background: rgba(255, 255, 255, 0.1);
+        color: white;
+    }
+
+    .main-content {
+        padding: 30px;
+    }
+
+    .profile-card {
+        background: white;
+        border-radius: 12px;
+        padding: 30px;
+        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <div class="row">
+        <!-- Sidebar -->
+        <div class="col-md-2 sidebar text-white p-0">
+            <div class="p-4">
+                <h4 class="mb-4">
+                    <i class="bi bi-shield-check"></i> SecureFlow
+                </h4>
+            </div>
+            <nav>
+                <a href="{% url 'dashboard' %}">
+                    <i class="bi bi-speedometer2"></i> Dashboard
+                </a>
+                <a href="{% url 'appointment_list' %}">
+                    <i class="bi bi-calendar3"></i> Appointments
+                </a>
+                <a href="{% url 'appointment_create' %}">
+                    <i class="bi bi-plus-circle"></i> New Appointment
+                </a>
+                <a href="{% url 'profile' %}" class="active">
+                    <i class="bi bi-person"></i> Profile
+                </a>
+                <a href="{% url 'home' %}">
+                    <i class="bi bi-house"></i> Home
+                </a>
+                <a href="{% url 'logout_view' %}">
+                    <i class="bi bi-box-arrow-right"></i> Logout
+                </a>
+            </nav>
+        </div>
+
+        <!-- Main Content -->
+        <div class="col-md-10 main-content">
+            <h2 class="mb-4">My Profile</h2>
+
+            {% if messages %}
+            {% for message in messages %}
+            <div class="alert alert-{{ message.tags }} alert-dismissible fade show">
+                {{ message }}
+                <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+            </div>
+            {% endfor %}
+            {% endif %}
+
+            <div class="profile-card">
+                <h4 class="mb-4">Profile Information</h4>
+
+                <div class="row mb-3">
+                    <div class="col-md-6">
+                        <strong>Username:</strong>
+                        <p>{{ user.username }}</p>
+                    </div>
+                    <div class="col-md-6">
+                        <strong>Email:</strong>
+                        <p>{{ user.email }}</p>
+                    </div>
+                </div>
+
+                <div class="row mb-3">
+                    <div class="col-md-6">
+                        <strong>First Name:</strong>
+                        <p>{{ user.first_name|default:"Not set" }}</p>
+                    </div>
+                    <div class="col-md-6">
+                        <strong>Last Name:</strong>
+                        <p>{{ user.last_name|default:"Not set" }}</p>
+                    </div>
+                </div>
+
+                <div class="row mb-3">
+                    <div class="col-md-12">
+                        <strong>Email Verified:</strong>
+                        <p>
+                            {% if user.profile.is_email_verified %}
+                            <span class="badge bg-success">Verified</span>
+                            {% else %}
+                            <span class="badge bg-warning">Not Verified</span>
+                            {% endif %}
+                        </p>
+                    </div>
+                </div>
+
+                <div class="row mb-3">
+                    <div class="col-md-6">
+                        <strong>Joined:</strong>
+                        <p>{{ user.date_joined|date:"F d, Y" }}</p>
+                    </div>
+                    <div class="col-md-6">
+                        <strong>Last Login:</strong>
+                        <p>{{ user.last_login|date:"F d, Y H:i" }}</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

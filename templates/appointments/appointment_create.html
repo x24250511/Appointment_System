@@ -1,0 +1,249 @@
+{% extends 'base.html' %}
+
+{% block title %}Create Appointment - SecureFlow{% endblock %}
+
+{% block extra_css %}
+<style>
+    .sidebar {
+        min-height: 100vh;
+        background: linear-gradient(135deg, var(--primary-navy) 0%, var(--secondary-blue) 100%);
+    }
+
+    .sidebar a {
+        color: rgba(255, 255, 255, 0.8);
+        padding: 15px 20px;
+        display: block;
+        text-decoration: none;
+        transition: 0.3s;
+    }
+
+    .sidebar a:hover,
+    .sidebar a.active {
+        background: rgba(255, 255, 255, 0.1);
+        color: white;
+    }
+
+    .main-content {
+        padding: 30px;
+    }
+
+    .form-card {
+        background: white;
+        border-radius: 12px;
+        padding: 30px;
+        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+    }
+
+    .industry-card {
+        border: 2px solid #e0e0e0;
+        border-radius: 8px;
+        padding: 20px;
+        cursor: pointer;
+        transition: all 0.3s;
+        margin-bottom: 15px;
+    }
+
+    .industry-card:hover {
+        border-color: var(--accent-teal);
+        background: #f8f9fa;
+    }
+
+    .industry-card input[type="radio"] {
+        display: none;
+    }
+
+    .industry-card input[type="radio"]:checked+label {
+        color: var(--accent-teal);
+        font-weight: 600;
+    }
+
+    .industry-card input[type="radio"]:checked~.industry-card {
+        border-color: var(--accent-teal);
+        background: #e8f5f3;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <div class="row">
+        <!-- Sidebar -->
+        <div class="col-md-2 sidebar text-white p-0">
+            <div class="p-4">
+                <h4 class="mb-4">
+                    <i class="bi bi-shield-check"></i> SecureFlow
+                </h4>
+            </div>
+            <nav>
+                <a href="{% url 'dashboard' %}">
+                    <i class="bi bi-speedometer2"></i> Dashboard
+                </a>
+                <a href="{% url 'appointment_list' %}">
+                    <i class="bi bi-calendar3"></i> Appointments
+                </a>
+                <a href="{% url 'appointment_create' %}" class="active">
+                    <i class="bi bi-plus-circle"></i> New Appointment
+                </a>
+                <a href="{% url 'profile' %}">
+                    <i class="bi bi-person"></i> Profile
+                </a>
+                <a href="{% url 'home' %}">
+                    <i class="bi bi-house"></i> Home
+                </a>
+                <a href="{% url 'logout_view' %}">
+                    <i class="bi bi-box-arrow-right"></i> Logout
+                </a>
+            </nav>
+        </div>
+
+        <!-- Main Content -->
+        <div class="col-md-10 main-content">
+            <h2 class="mb-4">Create New Appointment</h2>
+
+            {% if messages %}
+            {% for message in messages %}
+            <div class="alert alert-{{ message.tags }} alert-dismissible fade show">
+                {{ message }}
+                <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+            </div>
+            {% endfor %}
+            {% endif %}
+
+            <div class="form-card">
+                <form method="POST" action="{% url 'appointment_create' %}" id="appointmentForm">
+                    {% csrf_token %}
+
+                    <!-- Step 1: Select Industry -->
+                    <h5 class="mb-3">1. Select Industry</h5>
+                    <div class="row mb-4">
+                        <div class="col-md-4">
+                            <div class="industry-card">
+                                <input type="radio" name="industry" value="healthcare" id="healthcare" required checked>
+                                <label for="healthcare" class="form-label mb-0">
+                                    <i class="bi bi-heart-pulse"></i> Healthcare
+                                </label>
+                            </div>
+                        </div>
+                        <div class="col-md-4">
+                            <div class="industry-card">
+                                <input type="radio" name="industry" value="legal" id="legal" required>
+                                <label for="legal" class="form-label mb-0">
+                                    <i class="bi bi-briefcase"></i> Legal Services
+                                </label>
+                            </div>
+                        </div>
+                        <div class="col-md-4">
+                            <div class="industry-card">
+                                <input type="radio" name="industry" value="consultancy" id="consultancy" required>
+                                <label for="consultancy" class="form-label mb-0">
+                                    <i class="bi bi-lightbulb"></i> Professional Consultancy
+                                </label>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Step 2: Select Location -->
+                    <h5 class="mb-3">2. Select Location</h5>
+                    <div class="mb-4">
+                        <select class="form-select" name="location" id="locationSelect" required>
+                            <option value="">Choose a location...</option>
+
+                            <!-- Healthcare Locations -->
+                            <optgroup label="Healthcare" id="healthcare-locations">
+                                <option value="123 O'Connell Street, Dublin 1">Dublin City Centre Clinic - 123 O'Connell
+                                    Street, Dublin 1</option>
+                                <option value="Main Street, Blanchardstown, Dublin 15">Blanchardstown Medical Center -
+                                    Main Street, Dublin 15</option>
+                                <option value="George's Street, Dun Laoghaire, Co. Dublin">Dun Laoghaire Health Hub -
+                                    George's Street, Dun Laoghaire</option>
+                            </optgroup>
+
+                            <!-- Legal Locations -->
+                            <optgroup label="Legal Services" id="legal-locations" style="display:none;">
+                                <option value="45 Dame Street, Dublin 2">City Centre Law Firm - 45 Dame Street, Dublin 2
+                                </option>
+                                <option value="Beacon Court, Sandyford, Dublin 18">Sandyford Legal Partners - Beacon
+                                    Court, Dublin 18</option>
+                                <option value="The Square, Tallaght, Dublin 24">Tallaght Legal Services - The Square,
+                                    Dublin 24</option>
+                            </optgroup>
+
+                            <!-- Consultancy Locations -->
+                            <optgroup label="Professional Consultancy" id="consultancy-locations" style="display:none;">
+                                <option value="Grand Canal Dock, Dublin 2">Dublin Business Hub - Grand Canal Dock,
+                                    Dublin 2</option>
+                                <option value="Swords Business Park, Co. Dublin">Airport Business Park - Swords, Co.
+                                    Dublin</option>
+                                <option value="Leopardstown, Dublin 18">Leopardstown Consulting Center - Dublin 18
+                                </option>
+                            </optgroup>
+                        </select>
+                    </div>
+
+                    <!-- Step 3: Appointment Details -->
+                    <h5 class="mb-3">3. Appointment Details</h5>
+
+                    <div class="mb-3">
+                        <label for="title" class="form-label">Appointment Title *</label>
+                        <input type="text" class="form-control" id="title" name="title"
+                            placeholder="e.g., General Check-up, Legal Consultation" required>
+                    </div>
+
+                    <div class="mb-3">
+                        <label for="description" class="form-label">Description *</label>
+                        <textarea class="form-control" id="description" name="description" rows="4"
+                            placeholder="Provide additional details about your appointment..." required></textarea>
+                    </div>
+
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            <label for="appointment_date" class="form-label">Date *</label>
+                            <input type="date" class="form-control" id="appointment_date" name="appointment_date"
+                                required>
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <label for="appointment_time" class="form-label">Time *</label>
+                            <input type="time" class="form-control" id="appointment_time" name="appointment_time"
+                                required>
+                        </div>
+                    </div>
+
+                    <div class="d-flex gap-2 mt-4">
+                        <button type="submit" class="btn btn-primary">
+                            <i class="bi bi-check-lg"></i> Create Appointment
+                        </button>
+                        <a href="{% url 'appointment_list' %}" class="btn btn-outline-secondary">
+                            <i class="bi bi-x-lg"></i> Cancel
+                        </a>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    // Show/hide location options based on selected industry
+    document.querySelectorAll('input[name="industry"]').forEach(radio => {
+        radio.addEventListener('change', function () {
+            // Hide all location groups
+            document.querySelectorAll('optgroup').forEach(group => {
+                group.style.display = 'none';
+            });
+
+            // Show selected industry locations
+            const selectedIndustry = this.value;
+            const locationGroup = document.getElementById(selectedIndustry + '-locations');
+            if (locationGroup) {
+                locationGroup.style.display = 'block';
+            }
+
+            // Reset location selection
+            document.getElementById('locationSelect').value = '';
+        });
+    });
+
+    // Set minimum date to today
+    document.getElementById('appointment_date').min = new Date().toISOString().split('T')[0];
+</script>
+{% endblock %}

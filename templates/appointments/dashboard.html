@@ -1,0 +1,205 @@
+{% extends 'base.html' %}
+
+{% block title %}Dashboard - SecureFlow{% endblock %}
+
+{% block extra_css %}
+<style>
+    .sidebar {
+        min-height: 100vh;
+        background: linear-gradient(135deg, var(--primary-navy) 0%, var(--secondary-blue) 100%);
+    }
+
+    .sidebar a {
+        color: rgba(255, 255, 255, 0.8);
+        padding: 15px 20px;
+        display: block;
+        text-decoration: none;
+        transition: 0.3s;
+    }
+
+    .sidebar a:hover,
+    .sidebar a.active {
+        background: rgba(255, 255, 255, 0.1);
+        color: white;
+    }
+
+    .main-content {
+        padding: 30px;
+    }
+
+    .stat-card {
+        background: white;
+        border-radius: 12px;
+        padding: 25px;
+        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+        transition: 0.3s;
+    }
+
+    .stat-card:hover {
+        transform: translateY(-5px);
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+    }
+
+    .stat-icon {
+        width: 60px;
+        height: 60px;
+        border-radius: 12px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 24px;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <div class="row">
+        <!-- Sidebar -->
+        <div class="col-md-2 sidebar text-white p-0">
+            <div class="p-4">
+                <h4 class="mb-4">
+                    <i class="bi bi-shield-check"></i> SecureFlow
+                </h4>
+            </div>
+            <nav>
+                <a href="{% url 'dashboard' %}" class="active">
+                    <i class="bi bi-speedometer2"></i> Dashboard
+                </a>
+                <a href="{% url 'appointment_list' %}">
+                    <i class="bi bi-calendar3"></i> Appointments
+                </a>
+                <a href="{% url 'appointment_create' %}">
+                    <i class="bi bi-plus-circle"></i> New Appointment
+                </a>
+                <a href="{% url 'profile' %}">
+                    <i class="bi bi-person"></i> Profile
+                </a>
+                <a href="{% url 'home' %}">
+                    <i class="bi bi-house"></i> Home
+                </a>
+                <a href="{% url 'logout_view' %}">
+                    <i class="bi bi-box-arrow-right"></i> Logout
+                </a>
+            </nav>
+        </div>
+
+        <!-- Main Content -->
+        <div class="col-md-10 main-content">
+            <div class="d-flex justify-content-between align-items-center mb-4">
+                <div>
+                    <h2>Welcome, {{ user.first_name|default:user.username }}!</h2>
+                    <p class="text-muted">Here's your appointment overview</p>
+                </div>
+                <a href="{% url 'appointment_create' %}" class="btn btn-primary">
+                    <i class="bi bi-plus-lg"></i> New Appointment
+                </a>
+            </div>
+
+            <!-- Statistics Cards -->
+            <div class="row mb-4">
+                <div class="col-md-3">
+                    <div class="stat-card">
+                        <div class="d-flex justify-content-between align-items-center">
+                            <div>
+                                <p class="text-muted mb-1">Total</p>
+                                <h3>{{ stats.total }}</h3>
+                            </div>
+                            <div class="stat-icon bg-primary text-white">
+                                <i class="bi bi-calendar-check"></i>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-3">
+                    <div class="stat-card">
+                        <div class="d-flex justify-content-between align-items-center">
+                            <div>
+                                <p class="text-muted mb-1">Pending</p>
+                                <h3>{{ stats.pending }}</h3>
+                            </div>
+                            <div class="stat-icon bg-warning text-white">
+                                <i class="bi bi-clock"></i>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-3">
+                    <div class="stat-card">
+                        <div class="d-flex justify-content-between align-items-center">
+                            <div>
+                                <p class="text-muted mb-1">Confirmed</p>
+                                <h3>{{ stats.confirmed }}</h3>
+                            </div>
+                            <div class="stat-icon bg-success text-white">
+                                <i class="bi bi-check-circle"></i>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-3">
+                    <div class="stat-card">
+                        <div class="d-flex justify-content-between align-items-center">
+                            <div>
+                                <p class="text-muted mb-1">Cancelled</p>
+                                <h3>{{ stats.cancelled }}</h3>
+                            </div>
+                            <div class="stat-icon bg-danger text-white">
+                                <i class="bi bi-x-circle"></i>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Recent Appointments -->
+            <div class="card">
+                <div class="card-header bg-white">
+                    <h5 class="mb-0">Recent Appointments</h5>
+                </div>
+                <div class="card-body">
+                    {% if recent_appointments %}
+                    <div class="table-responsive">
+                        <table class="table table-hover">
+                            <thead>
+                                <tr>
+                                    <th>Title</th>
+                                    <th>Date</th>
+                                    <th>Time</th>
+                                    <th>Location</th>
+                                    <th>Status</th>
+                                    <th>Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for appointment in recent_appointments %}
+                                <tr>
+                                    <td><strong>{{ appointment.title }}</strong></td>
+                                    <td>{{ appointment.appointment_date|date:"M d, Y" }}</td>
+                                    <td>{{ appointment.appointment_time|time:"g:i A" }}</td>
+                                    <td>{{ appointment.location }}</td>
+                                    <td>
+                                        <span class="badge bg-{{ appointment.status }}">
+                                            {{ appointment.get_status_display }}
+                                        </span>
+                                    </td>
+                                    <td>
+                                        <a href="{% url 'appointment_detail_view' appointment.id %}"
+                                            class="btn btn-sm btn-outline-primary">
+                                            View
+                                        </a>
+                                    </td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                    {% else %}
+                    <p class="text-center text-muted py-4">No appointments yet. Create your first one!</p>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

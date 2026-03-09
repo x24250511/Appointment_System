@@ -1,0 +1,76 @@
+{% extends 'base.html' %}
+
+{% block title %}Login - SecureFlow{% endblock %}
+
+{% block content %}
+<div class="auth-page">
+    <div class="auth-card">
+        <div class="auth-logo">
+            <h2>Secure<span>Flow</span></h2>
+            <p>Login to your account</p>
+        </div>
+
+        {% if messages %}
+        {% for message in messages %}
+        <div class="alert alert-{{ message.tags }} alert-dismissible fade show">
+            {{ message }}
+            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+        </div>
+        {% endfor %}
+        {% endif %}
+
+        <form method="POST" action="{% url 'login_view' %}">
+            {% csrf_token %}
+
+            <div class="mb-3">
+                <label for="username" class="form-label">Username</label>
+                <div class="input-group">
+                    <span class="input-group-text bg-light border-end-0">
+                        <i class="bi bi-person"></i>
+                    </span>
+                    <input type="text" class="form-control border-start-0" id="username" name="username" required>
+                </div>
+            </div>
+
+            <div class="mb-3">
+                <label for="password" class="form-label">Password</label>
+                <div class="input-group">
+                    <span class="input-group-text bg-light border-end-0">
+                        <i class="bi bi-lock"></i>
+                    </span>
+                    <input type="password" class="form-control border-start-0" id="password" name="password" required>
+                </div>
+            </div>
+
+            <div class="d-flex justify-content-between align-items-center mb-4">
+                <div class="form-check">
+                    <input class="form-check-input" type="checkbox" id="rememberMe" name="remember">
+                    <label class="form-check-label" for="rememberMe">
+                        Remember me
+                    </label>
+                </div>
+                <a href="#" class="text-decoration-none" style="color: var(--accent-teal);">Forgot Password?</a>
+            </div>
+
+            <button type="submit" class="btn btn-primary w-100">
+                Login
+            </button>
+        </form>
+
+        <div class="auth-divider">
+            <span>OR</span>
+        </div>
+
+        <div class="text-center">
+            <p class="mb-0">Don't have an account? <a href="{% url 'register_view' %}" class="text-decoration-none"
+                    style="color: var(--accent-teal); font-weight: 600;">Register here</a></p>
+        </div>
+
+        <div class="text-center mt-3">
+            <a href="{% url 'home' %}" class="text-decoration-none text-muted">
+                <i class="bi bi-arrow-left"></i> Back to Home
+            </a>
+        </div>
+    </div>
+</div>
+{% endblock %}

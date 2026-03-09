@@ -1,0 +1,53 @@
+{% extends 'base.html' %}
+
+{% block title %}Verify OTP - SecureFlow{% endblock %}
+
+{% block content %}
+<div class="auth-page">
+    <div class="auth-card">
+        <div class="auth-logo">
+            <h2>Secure<span>Flow</span></h2>
+            <p>Two-Factor Authentication</p>
+        </div>
+
+        {% if messages %}
+        {% for message in messages %}
+        <div class="alert alert-{{ message.tags }} alert-dismissible fade show">
+            {{ message }}
+            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+        </div>
+        {% endfor %}
+        {% endif %}
+
+        <div class="alert alert-info mb-4">
+            <i class="bi bi-shield-check"></i> For security, we've sent a 6-digit OTP to <strong>{{ email }}</strong>
+        </div>
+
+        <form method="POST" action="{% url 'login_verify_otp' %}">
+            {% csrf_token %}
+
+            <div class="mb-4">
+                <label for="otp" class="form-label">Enter OTP Code</label>
+                <input type="text" class="form-control text-center" id="otp" name="otp" maxlength="6" pattern="[0-9]{6}"
+                    placeholder="000000" style="font-size: 24px; letter-spacing: 10px;" required autofocus>
+                <small class="text-muted">Enter the 6-digit code sent to your email</small>
+            </div>
+
+            <button type="submit" class="btn btn-primary w-100 mb-3">
+                <i class="bi bi-check-circle"></i> Verify & Login
+            </button>
+        </form>
+
+        <div class="text-center">
+            <p class="mb-0">Didn't receive the code? <a href="{% url 'login_view' %}" class="text-decoration-none"
+                    style="color: var(--accent-teal); font-weight: 600;">Try again</a></p>
+        </div>
+
+        <div class="text-center mt-3">
+            <a href="{% url 'home' %}" class="text-decoration-none text-muted">
+                <i class="bi bi-arrow-left"></i> Back to Home
+            </a>
+        </div>
+    </div>
+</div>
+{% endblock %}

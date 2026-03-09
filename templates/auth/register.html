@@ -1,0 +1,107 @@
+{% extends 'base.html' %}
+
+{% block title %}Register - SecureFlow{% endblock %}
+
+{% block content %}
+<div class="auth-page">
+    <div class="auth-card">
+        <div class="auth-logo">
+            <h2>Secure<span>Flow</span></h2>
+            <p>Create your account</p>
+        </div>
+
+        {% if messages %}
+        {% for message in messages %}
+        <div class="alert alert-{{ message.tags }} alert-dismissible fade show">
+            {{ message }}
+            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+        </div>
+        {% endfor %}
+        {% endif %}
+
+        <form method="POST" action="{% url 'register_view' %}">
+            {% csrf_token %}
+
+            <div class="row">
+                <div class="col-md-6 mb-3">
+                    <label for="first_name" class="form-label">First Name</label>
+                    <input type="text" class="form-control" id="first_name" name="first_name" required>
+                </div>
+                <div class="col-md-6 mb-3">
+                    <label for="last_name" class="form-label">Last Name</label>
+                    <input type="text" class="form-control" id="last_name" name="last_name" required>
+                </div>
+            </div>
+
+            <div class="mb-3">
+                <label for="username" class="form-label">Username</label>
+                <div class="input-group">
+                    <span class="input-group-text bg-light border-end-0">
+                        <i class="bi bi-person"></i>
+                    </span>
+                    <input type="text" class="form-control border-start-0" id="username" name="username" required>
+                </div>
+            </div>
+
+            <div class="mb-3">
+                <label for="email" class="form-label">Email Address</label>
+                <div class="input-group">
+                    <span class="input-group-text bg-light border-end-0">
+                        <i class="bi bi-envelope"></i>
+                    </span>
+                    <input type="email" class="form-control border-start-0" id="email" name="email" required>
+                </div>
+            </div>
+
+            <div class="mb-3">
+                <label for="password" class="form-label">Password</label>
+                <div class="input-group">
+                    <span class="input-group-text bg-light border-end-0">
+                        <i class="bi bi-lock"></i>
+                    </span>
+                    <input type="password" class="form-control border-start-0" id="password" name="password"
+                        minlength="8" required>
+                </div>
+                <small class="text-muted">Must be at least 8 characters</small>
+            </div>
+
+            <div class="mb-4">
+                <label for="password_confirm" class="form-label">Confirm Password</label>
+                <div class="input-group">
+                    <span class="input-group-text bg-light border-end-0">
+                        <i class="bi bi-lock-fill"></i>
+                    </span>
+                    <input type="password" class="form-control border-start-0" id="password_confirm"
+                        name="password_confirm" minlength="8" required>
+                </div>
+            </div>
+
+            <div class="form-check mb-4">
+                <input class="form-check-input" type="checkbox" id="agreeTerms" required>
+                <label class="form-check-label" for="agreeTerms">
+                    I agree to the <a href="#" style="color: var(--accent-teal);">Terms & Conditions</a>
+                </label>
+            </div>
+
+            <button type="submit" class="btn btn-primary w-100">
+                Create Account
+            </button>
+        </form>
+
+        <div class="auth-divider">
+            <span>OR</span>
+        </div>
+
+        <div class="text-center">
+            <p class="mb-0">Already have an account? <a href="{% url 'login_view' %}" class="text-decoration-none"
+                    style="color: var(--accent-teal); font-weight: 600;">Login here</a></p>
+        </div>
+
+        <div class="text-center mt-3">
+            <a href="{% url 'home' %}" class="text-decoration-none text-muted">
+                <i class="bi bi-arrow-left"></i> Back to Home
+            </a>
+        </div>
+    </div>
+</div>
+{% endblock %}
