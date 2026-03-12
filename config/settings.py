@@ -166,3 +166,7 @@ APPOINTMENT_SERVICE_URL = config(
     'APPOINTMENT_SERVICE_URL', default='http://localhost:8004')
 APPOINTMENT_API_KEY = config('APPOINTMENT_API_KEY', default='')
 WEATHER_API_KEY = config('WEATHER_API_KEY', default='')
+HEALTHCARE_PROVIDER_ID = config('HEALTHCARE_PROVIDER_ID', default='', cast=str)
+LEGAL_PROVIDER_ID = config('LEGAL_PROVIDER_ID', default='', cast=str)
+CONSULTANCY_PROVIDER_ID = config(
+    'CONSULTANCY_PROVIDER_ID', default='', cast=str)

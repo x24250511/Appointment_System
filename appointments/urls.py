@@ -15,6 +15,10 @@ urlpatterns = [
     path('<uuid:appointment_id>/status/', views.appointment_change_status,
          name='appointment_change_status'),
 
+    # AJAX endpoints
+    path('api/get-slots/', views.get_available_slots_ajax,
+         name='get_available_slots_ajax'),
+
     # API endpoints
     path('api/', views.appointment_list_create,
          name='appointment_list_create_api'),

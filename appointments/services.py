@@ -11,10 +11,7 @@ class LocationService:
 
     @staticmethod
     def geocode_location(location):
-        """
-        Convert location name/address to coordinates
-        Returns: {'lat': latitude, 'lon': longitude, 'display_name': formatted_address}
-        """
+        """Convert location name/address to coordinates"""
         try:
             print(f"\n{'='*60}")
             print(f"[MAPS API] Geocoding location: {location}")
@@ -66,78 +63,57 @@ class LocationService:
 
     @staticmethod
     def validate_location(location):
-        """Check if a location is valid (can be geocoded)"""
+        """Check if a location is valid"""
         result = LocationService.geocode_location(location)
         return result.get('found', False)
 
     @staticmethod
     def get_map_url(latitude, longitude, zoom=15):
-        """Generate static map image URL"""
+        """Generate map URL"""
         return f"https://www.openstreetmap.org/?mlat={latitude}&mlon={longitude}#map={zoom}/{latitude}/{longitude}"
 
 
 class EmailService:
-    """Send emails using classmate's CloudMail API"""
+    """Send emails using CloudMail API"""
 
     BASE_URL = settings.EMAIL_SERVICE_URL
 
     @staticmethod
-    def send_email(to_email, subject, body, from_name="SecureFlow", reply_to=None, retry_count=2):
-        """Send email via CloudMail API with retry"""
-        for attempt in range(retry_count + 1):
-            try:
-                print(f"\n{'='*60}")
-                print(f"[EMAIL] Attempt {attempt + 1}/{retry_count + 1}")
-                print(f"[EMAIL] Sending email to: {to_email}")
-                print(f"[EMAIL] Subject: {subject}")
+    def send_email(to_email, subject, body, from_name="SecureFlow"):
+        """Send email via CloudMail API"""
+        try:
+            print(f"\n{'='*60}")
+            print(f"[EMAIL] Sending to: {to_email}")
+            print(f"[EMAIL] Subject: {subject}")
 
-                data = {
-                    'to_email': to_email,
-                    'subject': subject,
-                    'message': body,
-                    'from_name': from_name,
-                }
+            data = {
+                'to_email': to_email,
+                'subject': subject,
+                'message': body,
+                'from_name': from_name,
+            }
 
-                if reply_to:
-                    data['reply_to'] = reply_to
+            response = requests.post(
+                f"{EmailService.BASE_URL}/api/send/",
+                data=data,
+                timeout=30
+            )
 
-                response = requests.post(
-                    f"{EmailService.BASE_URL}/api/send/",
-                    data=data,
-                    timeout=30
-                )
+            print(f"[EMAIL] Response Status: {response.status_code}")
 
-                print(f"[EMAIL] Response Status: {response.status_code}")
-
-                if response.status_code == 200:
-                    print(f"[EMAIL] ✓ Email sent successfully")
-                    print(f"{'='*60}\n")
-                    return True, "Email sent successfully"
-                else:
-                    print(f"[EMAIL] ✗ Failed: {response.text}")
-                    if attempt < retry_count:
-                        print(f"[EMAIL] Retrying...")
-                        continue
-                    print(f"{'='*60}\n")
-                    return False, "Failed to send email"
-
-            except requests.exceptions.Timeout:
-                print(f"[EMAIL ERROR] ✗ Request timed out")
-                if attempt < retry_count:
-                    print(f"[EMAIL] Retrying...")
-                    continue
+            if response.status_code == 200:
+                print(f"[EMAIL] ✓ Email sent successfully")
                 print(f"{'='*60}\n")
-                return False, "Email service timeout"
-
-            except Exception as e:
-                print(f"[EMAIL ERROR] ✗ {str(e)}")
-                if attempt < retry_count:
-                    print(f"[EMAIL] Retrying...")
-                    continue
+                return True, "Email sent successfully"
+            else:
+                print(f"[EMAIL] ✗ Failed: {response.text}")
                 print(f"{'='*60}\n")
-                return False, f"Email service error: {str(e)}"
+                return False, "Failed to send email"
 
-        return False, "Failed after all retry attempts"
+        except Exception as e:
+            print(f"[EMAIL ERROR] ✗ {str(e)}")
+            print(f"{'='*60}\n")
+            return False, f"Email service error: {str(e)}"
 
     @staticmethod
     def send_otp_email(email, otp_code):
@@ -157,7 +133,7 @@ SecureFlow Team
         return EmailService.send_email(email, subject, body, from_name="SecureFlow Authentication")
 
     @staticmethod
-    def send_appointment_confirmation(email, appointment, pdf_url=None, map_url=None):
+    def send_appointment_confirmation(email, appointment, map_url=None):
         """Send appointment confirmation email"""
         subject = f"Appointment Confirmation: {appointment.title}"
 
@@ -166,6 +142,7 @@ SecureFlow Team
 Your appointment has been confirmed:
 
 Title: {appointment.title}
+Industry: {appointment.get_industry_display()}
 Date: {appointment.appointment_date}
 Time: {appointment.appointment_time}
 Location: {appointment.location}
@@ -177,32 +154,23 @@ Description:
         if map_url:
             body += f"\n\nView location on map: {map_url}"
 
-        if pdf_url:
-            body += f"\n\nDownload your confirmation PDF: {pdf_url}"
-
         body += """
 
 Best regards,
 SecureFlow Team
 """
 
-        return EmailService.send_email(
-            email,
-            subject,
-            body,
-            from_name="SecureFlow Appointments",
-            reply_to="noreply@secureflow.com"
-        )
+        return EmailService.send_email(email, subject, body, from_name="SecureFlow Appointments")
 
 
 class PDFService:
-    """Generate PDF from HTML using classmate's service"""
+    """Generate PDF from HTML"""
 
     BASE_URL = settings.PDF_SERVICE_URL
 
     @staticmethod
     def generate_pdf(html_content, filename):
-        """Convert HTML to PDF"""
+        """Convert HTML to PDF (placeholder - service offline)"""
         try:
             response = requests.post(
                 f"{PDFService.BASE_URL}/generate",
@@ -216,7 +184,7 @@ class PDFService:
             data = response.json()
             return data.get('pdf_url')
         except Exception as e:
-            print(f"PDF Service error: {str(e)}")
+            print(f"[PDF Service] Service unavailable: {str(e)}")
             return None
 
     @staticmethod
@@ -254,6 +222,9 @@ class PDFService:
                     <span class="label">Appointment ID:</span> {appointment.id}
                 </div>
                 <div class="detail">
+                    <span class="label">Industry:</span> {appointment.get_industry_display()}
+                </div>
+                <div class="detail">
                     <span class="label">Title:</span> {appointment.title}
                 </div>
                 <div class="detail">
@@ -280,10 +251,10 @@ class PDFService:
 
 
 class AppointmentCreatorService:
-    """Integrate with classmate's appointment creator service"""
+    """Integrate with Appointment Creator API - Full Dynamic Slot Management"""
 
     BASE_URL = settings.APPOINTMENT_SERVICE_URL
-    API_KEY = settings.APPOINTMENT_API_KEY
+    API_KEY = getattr(settings, 'APPOINTMENT_API_KEY', '')
 
     @staticmethod
     def create_provider(name):
@@ -306,7 +277,7 @@ class AppointmentCreatorService:
 
             if response.status_code in [200, 201]:
                 data = response.json()
-                provider_id = data.get('id')
+                provider_id = data.get('provider_id')
                 print(
                     f"[APPOINTMENT API] ✓ Provider created with ID: {provider_id}")
                 print(f"{'='*60}\n")
@@ -322,18 +293,205 @@ class AppointmentCreatorService:
             return None
 
     @staticmethod
-    def sync_appointment(appointment):
-        """Sync appointment to external service"""
+    def get_provider_id_for_industry(industry):
+        """Get provider ID based on industry"""
+        from django.conf import settings
+
+        provider_map = {
+            'healthcare': settings.HEALTHCARE_PROVIDER_ID,
+            'legal': settings.LEGAL_PROVIDER_ID,
+            'consultancy': settings.CONSULTANCY_PROVIDER_ID,
+        }
+
+        return provider_map.get(industry)
+
+    @staticmethod
+    def generate_slots_for_date(provider_id, date):
+        """Generate 30-minute slots from 9 AM to 6 PM"""
         try:
             print(f"\n{'='*60}")
-            print(f"[APPOINTMENT SYNC] Syncing appointment {appointment.id}")
-            print(f"  - Title: {appointment.title}")
-            print(f"  - Date: {appointment.appointment_date}")
-            print(f"  - Time: {appointment.appointment_time}")
-            print(f"[APPOINTMENT SYNC] ✓ Sync completed")
-            print(f"{'='*60}\n")
-            return True
+            print(
+                f"[APPOINTMENT API] Generating slots for provider {provider_id} on {date}")
+
+            response = requests.post(
+                f"{AppointmentCreatorService.BASE_URL}/api/generate-slots/",
+                headers={
+                    'X-API-KEY': AppointmentCreatorService.API_KEY,
+                    'Content-Type': 'application/json'
+                },
+                json={
+                    'provider_id': int(provider_id),
+                    'date': date,
+                    'start_time': '09:00',
+                    'end_time': '18:00'
+                },
+                timeout=10
+            )
+
+            print(f"[APPOINTMENT API] Response Status: {response.status_code}")
+
+            if response.status_code in [200, 201]:
+                data = response.json()
+                print(
+                    f"[APPOINTMENT API] ✓ {data.get('message', 'Slots generated')}")
+                print(f"{'='*60}\n")
+                return True
+            else:
+                print(f"[APPOINTMENT API] Response: {response.text}")
+                print(f"{'='*60}\n")
+                return False
+
         except Exception as e:
-            print(f"[APPOINTMENT SYNC ERROR] ✗ {str(e)}")
+            print(f"[APPOINTMENT API ERROR] {str(e)}")
+            print(f"{'='*60}\n")
+            return False
+
+    @staticmethod
+    def get_available_slots(provider_id, date):
+        """Get available slots for a provider on a specific date"""
+        try:
+            print(f"\n{'='*60}")
+            print(
+                f"[APPOINTMENT API] Getting slots for provider {provider_id} on {date}")
+
+            response = requests.get(
+                f"{AppointmentCreatorService.BASE_URL}/slots/",
+                headers={
+                    'X-API-KEY': AppointmentCreatorService.API_KEY,
+                },
+                params={
+                    'provider_id': provider_id,
+                    'date': date
+                },
+                timeout=10
+            )
+
+            print(f"[APPOINTMENT API] Response Status: {response.status_code}")
+
+            if response.status_code == 200:
+                data = response.json()
+                slots = data.get('slots', [])
+                print(
+                    f"[APPOINTMENT API] ✓ Found {len(slots)} available slots")
+                print(f"{'='*60}\n")
+                return slots
+            else:
+                print(f"[APPOINTMENT API] ✗ Failed: {response.text}")
+                print(f"{'='*60}\n")
+                return []
+
+        except Exception as e:
+            print(f"[APPOINTMENT API ERROR] ✗ {str(e)}")
+            print(f"{'='*60}\n")
+            return []
+
+    @staticmethod
+    def book_slot(slot_id, customer_name, customer_email):
+        """Book a specific slot"""
+        try:
+            print(f"\n{'='*60}")
+            print(f"[APPOINTMENT API] Booking slot {slot_id}")
+
+            response = requests.post(
+                f"{AppointmentCreatorService.BASE_URL}/book/",
+                headers={
+                    'X-API-KEY': AppointmentCreatorService.API_KEY,
+                    'Content-Type': 'application/json'
+                },
+                json={
+                    'slot_id': slot_id,
+                    'customer_name': customer_name,
+                    'customer_email': customer_email
+                },
+                timeout=10
+            )
+
+            print(f"[APPOINTMENT API] Response Status: {response.status_code}")
+
+            if response.status_code in [200, 201]:
+                data = response.json()
+                print(f"[APPOINTMENT API] ✓ Slot booked successfully")
+                print(f"{'='*60}\n")
+                return True, data
+            else:
+                print(f"[APPOINTMENT API] ✗ Failed: {response.text}")
+                print(f"{'='*60}\n")
+                return False, None
+
+        except Exception as e:
+            print(f"[APPOINTMENT API ERROR] ✗ {str(e)}")
+            print(f"{'='*60}\n")
+            return False, None
+
+    @staticmethod
+    def sync_appointment(appointment):
+        """Sync appointment to external service with actual slot booking"""
+        try:
+            if not AppointmentCreatorService.API_KEY:
+                print(f"[APPOINTMENT SYNC] External API not configured")
+                return False
+
+            print(f"\n{'='*60}")
+            print(f"[APPOINTMENT SYNC] Syncing appointment {appointment.id}")
+
+            # Get provider ID for industry
+            provider_id = AppointmentCreatorService.get_provider_id_for_industry(
+                appointment.industry)
+
+            if not provider_id:
+                print(
+                    f"[APPOINTMENT SYNC] No provider configured for {appointment.industry}")
+                print(f"{'='*60}\n")
+                return False
+
+            # Generate slots for the date (if not already generated)
+            AppointmentCreatorService.generate_slots_for_date(
+                provider_id,
+                appointment.appointment_date.strftime('%Y-%m-%d')
+            )
+
+            # Get available slots
+            slots = AppointmentCreatorService.get_available_slots(
+                provider_id,
+                appointment.appointment_date.strftime('%Y-%m-%d')
+            )
+
+            if not slots:
+                print(f"[APPOINTMENT SYNC] No slots available")
+                print(f"{'='*60}\n")
+                return False
+
+            # Find matching slot for the appointment time
+            appointment_time_str = appointment.appointment_time.strftime(
+                '%H:%M')
+            matching_slot = None
+
+            for slot in slots:
+                slot_time = slot.get('time', '')[:5]  # Get HH:MM from HH:MM:SS
+                if slot_time == appointment_time_str:
+                    matching_slot = slot
+                    break
+
+            if matching_slot:
+                # Book the slot
+                success, booking_data = AppointmentCreatorService.book_slot(
+                    matching_slot.get('slot_id'),
+                    appointment.user.get_full_name() or appointment.user.username,
+                    appointment.user.email
+                )
+
+                if success:
+                    print(
+                        f"[APPOINTMENT SYNC] ✓ Appointment synced and slot booked")
+                    print(f"{'='*60}\n")
+                    return True
+
+            print(
+                f"[APPOINTMENT SYNC] No matching slot found for {appointment_time_str}")
+            print(f"{'='*60}\n")
+            return False
+
+        except Exception as e:
+            print(f"[APPOINTMENT SYNC ERROR] {str(e)}")
             print(f"{'='*60}\n")
             return False

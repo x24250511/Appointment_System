@@ -57,9 +57,12 @@
         font-weight: 600;
     }
 
-    .industry-card input[type="radio"]:checked~.industry-card {
-        border-color: var(--accent-teal);
+    .time-slot-info {
         background: #e8f5f3;
+        border-left: 4px solid var(--accent-teal);
+        padding: 12px;
+        margin-bottom: 15px;
+        border-radius: 4px;
     }
 </style>
 {% endblock %}
@@ -202,9 +205,15 @@
                                 required>
                         </div>
                         <div class="col-md-6 mb-3">
-                            <label for="appointment_time" class="form-label">Time *</label>
-                            <input type="time" class="form-control" id="appointment_time" name="appointment_time"
-                                required>
+                            <label for="appointment_time" class="form-label">Time Slot (1 hour) *</label>
+                            <div class="time-slot-info mb-2">
+                                <small><i class="bi bi-clock"></i> <span id="slot-status">Select date to see available
+                                        slots</span></small>
+                            </div>
+                            <select class="form-select" id="appointment_time" name="appointment_time" required disabled>
+                                <option value="">Select date first...</option>
+                            </select>
+                            <input type="hidden" id="selected_slot_id" name="slot_id">
                         </div>
                     </div>
 
@@ -238,12 +247,93 @@
                 locationGroup.style.display = 'block';
             }
 
-            // Reset location selection
+            // Reset location and time selections
             document.getElementById('locationSelect').value = '';
+            resetTimeSlots();
+
+            // Load slots if date is already selected
+            const dateInput = document.getElementById('appointment_date');
+            if (dateInput.value) {
+                loadAvailableSlots();
+            }
         });
     });
 
     // Set minimum date to today
-    document.getElementById('appointment_date').min = new Date().toISOString().split('T')[0];
+    const dateInput = document.getElementById('appointment_date');
+    dateInput.min = new Date().toISOString().split('T')[0];
+
+    // Load slots when date changes
+    dateInput.addEventListener('change', function () {
+        loadAvailableSlots();
+    });
+
+    function resetTimeSlots() {
+        const timeSelect = document.getElementById('appointment_time');
+        timeSelect.innerHTML = '<option value="">Select date first...</option>';
+        timeSelect.disabled = true;
+        document.getElementById('slot-status').textContent = 'Select date to see available slots';
+    }
+
+    function loadAvailableSlots() {
+        const industry = document.querySelector('input[name="industry"]:checked')?.value;
+        const date = document.getElementById('appointment_date').value;
+        const timeSelect = document.getElementById('appointment_time');
+        const statusText = document.getElementById('slot-status');
+
+        if (!industry || !date) {
+            resetTimeSlots();
+            return;
+        }
+
+        // Show loading state
+        timeSelect.innerHTML = '<option value="">Loading slots...</option>';
+        timeSelect.disabled = true;
+        statusText.innerHTML = '<i class="spinner-border spinner-border-sm"></i> Loading available slots...';
+
+        // Fetch available slots from API
+        fetch(`/appointments/api/get-slots/?industry=${industry}&date=${date}`)
+            .then(response => response.json())
+            .then(data => {
+                if (data.error) {
+                    timeSelect.innerHTML = '<option value="">Error loading slots</option>';
+                    statusText.textContent = 'Error: ' + data.error;
+                    return;
+                }
+
+                const slots = data.slots || [];
+
+                if (slots.length === 0) {
+                    timeSelect.innerHTML = '<option value="">No slots available</option>';
+                    statusText.textContent = 'No available slots for this date';
+                    return;
+                }
+
+                // Populate dropdown with available slots
+                timeSelect.innerHTML = '<option value="">Select a time slot...</option>';
+                slots.forEach(slot => {
+                    const option = document.createElement('option');
+                    option.value = slot.time;
+                    option.textContent = slot.display;
+                    option.dataset.slotId = slot.slot_id;
+                    timeSelect.appendChild(option);
+                });
+
+                timeSelect.disabled = false;
+                statusText.textContent = `${slots.length} slot(s) available`;
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                timeSelect.innerHTML = '<option value="">Error loading slots</option>';
+                statusText.textContent = 'Failed to load slots. Please try again.';
+            });
+    }
+
+    // Store slot_id when time is selected
+    document.getElementById('appointment_time').addEventListener('change', function () {
+        const selectedOption = this.options[this.selectedIndex];
+        const slotId = selectedOption.dataset.slotId;
+        document.getElementById('selected_slot_id').value = slotId || '';
+    });
 </script>
 {% endblock %}

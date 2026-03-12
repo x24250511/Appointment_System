@@ -12,9 +12,11 @@ from .serializers import (
     AppointmentHistorySerializer
 )
 from .services import LocationService, PDFService, EmailService, AppointmentCreatorService
-
+from django.http import JsonResponse
+from datetime import datetime, timedelta
 
 # ==================== FRONTEND VIEWS ====================
+
 
 @login_required
 def dashboard_view(request):
@@ -37,6 +39,62 @@ def dashboard_view(request):
         'stats': stats,
         'recent_appointments': recent_appointments
     })
+
+
+@login_required
+def get_available_slots_ajax(request):
+    """AJAX endpoint to get available slots for industry and date"""
+    industry = request.GET.get('industry')
+    date = request.GET.get('date')
+
+    if not industry or not date:
+        return JsonResponse({'error': 'Missing parameters', 'slots': []})
+
+    try:
+        # Get provider ID for industry
+        provider_id = AppointmentCreatorService.get_provider_id_for_industry(
+            industry)
+
+        if not provider_id:
+            return JsonResponse({'error': 'Provider not configured', 'slots': []})
+
+        # Generate slots for this date (creates them if they don't exist)
+        AppointmentCreatorService.generate_slots_for_date(provider_id, date)
+
+        # Get available slots from API
+        api_slots = AppointmentCreatorService.get_available_slots(
+            provider_id, date)
+
+        # Format slots for dropdown (convert 30-min to 1-hour slots)
+        formatted_slots = []
+        seen_hours = set()
+
+        for slot in api_slots:
+            time_str = slot.get('time', '')[:5]  # Get HH:MM from HH:MM:SS
+            hour = time_str.split(':')[0]
+
+            # Only show on-the-hour slots (09:00, 10:00, etc.)
+            if time_str.endswith(':00') and hour not in seen_hours:
+                seen_hours.add(hour)
+
+                # Calculate end time (1 hour later)
+                try:
+                    start = datetime.strptime(time_str, '%H:%M')
+                    end = start + timedelta(hours=1)
+
+                    formatted_slots.append({
+                        'slot_id': slot.get('slot_id'),
+                        'time': time_str,
+                        'display': f"{start.strftime('%I:%M %p')} - {end.strftime('%I:%M %p')}"
+                    })
+                except:
+                    pass
+
+        return JsonResponse({'slots': formatted_slots})
+
+    except Exception as e:
+        print(f"[AJAX ERROR] {str(e)}")
+        return JsonResponse({'error': str(e), 'slots': []})
 
 
 @login_required
@@ -87,13 +145,15 @@ def appointment_create_view(request):
         )
 
         # Optional: Sync with external appointment service
+        # This won't fail even if external service is down
         try:
             AppointmentCreatorService.sync_appointment(appointment)
         except Exception as e:
-            print(f"External sync failed: {e}")
+            print(f"External sync warning: {e}")
+            # Continue anyway - appointment is saved locally
 
         messages.success(
-            request, f'{industry.title()} appointment created! Waiting for provider confirmation.')
+            request, f'{industry.title()} appointment created successfully!')
         return redirect('appointment_list')
 
     return render(request, 'appointments/appointment_create.html')
