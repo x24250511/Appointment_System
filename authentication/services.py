@@ -8,13 +8,10 @@ from .models import OTPVerification
 
 
 class OTPService:
-    """Service to interact with OTP microservice"""
-
     BASE_URL = settings.OTP_SERVICE_URL
 
     @staticmethod
     def generate_otp(email):
-        # """Generate OTP using external microservice"""
         try:
             # ALWAYS delete old OTP records for this email first
             deleted_count = OTPVerification.objects.filter(
@@ -64,8 +61,7 @@ class OTPService:
             return None, None
 
     @staticmethod
-    def verify_otp(email, otp_code):
-        """Verify OTP using external microservice"""
+    def verify_otp(email, otp_code):  # Verfiy OTP
         try:
             print(f"\n{'='*60}")
             print(f"[OTP] Verifying OTP for: {email}")
