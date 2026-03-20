@@ -1,0 +1,4 @@
+Retrieving logs...
+Logs were saved to /Users/tejas/Documents/SCL/appointment_system/.elasticbeanstalk/logs/260320_202207
+Logs were saved to /Users/tejas/Documents/SCL/appointment_system/.elasticbeanstalk/logs/260320_202207
+Updated symlink at /Users/tejas/Documents/SCL/appointment_system/.elasticbeanstalk/logs/latest
