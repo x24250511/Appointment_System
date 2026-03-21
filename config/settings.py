@@ -183,3 +183,7 @@ HEALTHCARE_PROVIDER_ID = config('HEALTHCARE_PROVIDER_ID', default='', cast=str)
 LEGAL_PROVIDER_ID = config('LEGAL_PROVIDER_ID', default='', cast=str)
 CONSULTANCY_PROVIDER_ID = config(
     'CONSULTANCY_PROVIDER_ID', default='', cast=str)
+
+LOGIN_URL = '/auth/login/'
+LOGIN_REDIRECT_URL = '/appointments/dashboard/'
+LOGOUT_REDIRECT_URL = '/'
