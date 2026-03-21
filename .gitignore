@@ -36,7 +36,19 @@ db.sqlite3-journal
 .elasticbeanstalk/
 .ebextensions/
 *.zip
+# Coverage reports
+.coverage
+htmlcov/
+coverage.xml
+*.cover
 
+# Security reports
+*-report.json
+.scannerwork/
+
+# ZAP
+.zap/*.html
+.zap/*.json
 # AWS
 .aws/
 

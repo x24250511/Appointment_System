@@ -1,0 +1,164 @@
+name: SecureFlow CI/CD Pipeline
+
+on:
+  push:
+    branches: [ main, develop ]
+  pull_request:
+    branches: [ main ]
+
+env:
+  AWS_REGION: us-east-1
+  EB_APPLICATION_NAME: appointment_system
+  EB_ENVIRONMENT_NAME: secureflow-env
+
+jobs:
+  # Job 1: Code Quality & Security Analysis
+  code-quality:
+    name: Code Quality & SAST
+    runs-on: ubuntu-latest
+    
+    steps:
+    - name: Checkout Code
+      uses: actions/checkout@v3
+      with:
+        fetch-depth: 0  # Full history for SonarQube
+    
+    - name: Set up Python
+      uses: actions/setup-python@v4
+      with:
+        python-version: '3.11'
+    
+    - name: Install Dependencies
+      run: |
+        python -m pip install --upgrade pip
+        pip install -r requirements.txt
+        pip install pylint bandit safety
+    
+    - name: Run Pylint
+      run: |
+        pylint **/*.py --exit-zero --output-format=json > pylint-report.json || true
+    
+    - name: Run Bandit (Security Linter)
+      run: |
+        bandit -r . -f json -o bandit-report.json || true
+    
+    - name: Check Dependencies for Vulnerabilities
+      run: |
+        safety check --json > safety-report.json || true
+    
+    - name: SonarQube Scan
+      uses: sonarsource/sonarqube-scan-action@master
+      env:
+        SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
+        SONAR_HOST_URL: ${{ secrets.SONAR_HOST_URL }}
+    
+    - name: Upload Security Reports
+      uses: actions/upload-artifact@v3
+      with:
+        name: security-reports
+        path: |
+          pylint-report.json
+          bandit-report.json
+          safety-report.json
+
+  # Job 2: Unit Tests
+  test:
+    name: Unit Tests
+    runs-on: ubuntu-latest
+    needs: code-quality
+    
+    steps:
+    - name: Checkout Code
+      uses: actions/checkout@v3
+    
+    - name: Set up Python
+      uses: actions/setup-python@v4
+      with:
+        python-version: '3.11'
+    
+    - name: Install Dependencies
+      run: |
+        python -m pip install --upgrade pip
+        pip install -r requirements.txt
+        pip install pytest pytest-django pytest-cov
+    
+    - name: Run Django Tests
+      run: |
+        python manage.py test --verbosity=2
+      env:
+        DJANGO_SETTINGS_MODULE: config.settings
+        SECRET_KEY: test-secret-key-for-ci
+        DEBUG: False
+    
+    - name: Generate Coverage Report
+      run: |
+        pytest --cov=. --cov-report=xml --cov-report=html
+    
+    - name: Upload Coverage to Codecov
+      uses: codecov/codecov-action@v3
+      with:
+        file: ./coverage.xml
+        flags: unittests
+
+  # Job 3: Build & Deploy to AWS
+  deploy:
+    name: Deploy to AWS Elastic Beanstalk
+    runs-on: ubuntu-latest
+    needs: test
+    if: github.ref == 'refs/heads/main' && github.event_name == 'push'
+    
+    steps:
+    - name: Checkout Code
+      uses: actions/checkout@v3
+    
+    - name: Set up Python
+      uses: actions/setup-python@v4
+      with:
+        python-version: '3.11'
+    
+    - name: Install EB CLI
+      run: |
+        pip install awsebcli
+    
+    - name: Configure AWS Credentials
+      uses: aws-actions/configure-aws-credentials@v2
+      with:
+        aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+        aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+        aws-session-token: ${{ secrets.AWS_SESSION_TOKEN }}
+        aws-region: ${{ env.AWS_REGION }}
+    
+    - name: Deploy to Elastic Beanstalk
+      run: |
+        eb deploy ${{ env.EB_ENVIRONMENT_NAME }} --staged
+    
+    - name: Verify Deployment
+      run: |
+        eb status ${{ env.EB_ENVIRONMENT_NAME }}
+
+  # Job 4: DAST with OWASP ZAP
+  security-scan:
+    name: OWASP ZAP Security Scan
+    runs-on: ubuntu-latest
+    needs: deploy
+    if: github.ref == 'refs/heads/main' && github.event_name == 'push'
+    
+    steps:
+    - name: Checkout Code
+      uses: actions/checkout@v3
+    
+    - name: ZAP Baseline Scan
+      uses: zaproxy/action-baseline@v0.7.0
+      with:
+        target: 'http://secureflow-env.eba-2gp2b6pj.us-east-1.elasticbeanstalk.com'
+        rules_file_name: '.zap/rules.tsv'
+        cmd_options: '-a -j -l WARN'
+    
+    - name: Upload ZAP Report
+      uses: actions/upload-artifact@v3
+      if: always()
+      with:
+        name: zap-report
+        path: |
+          report_html.html
+          report_json.json
