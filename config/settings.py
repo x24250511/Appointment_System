@@ -46,6 +46,7 @@ INSTALLED_APPS = [
 
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
+    'csp.middleware.CSPMiddleware',
     'whitenoise.middleware.WhiteNoiseMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
     'corsheaders.middleware.CorsMiddleware',
@@ -187,3 +188,30 @@ CONSULTANCY_PROVIDER_ID = config(
 LOGIN_URL = '/auth/login/'
 LOGIN_REDIRECT_URL = '/appointments/dashboard/'
 LOGOUT_REDIRECT_URL = '/'
+
+# ZAP SECURITY
+# Security Headers
+SECURE_BROWSER_XSS_FILTER = True
+SECURE_CONTENT_TYPE_NOSNIFF = True
+X_FRAME_OPTIONS = 'DENY'
+
+# Content Security Policy
+CSP_DEFAULT_SRC = ("'self'",)
+CSP_SCRIPT_SRC = ("'self'", "https://cdn.jsdelivr.net",
+                  "https://cdnjs.cloudflare.com")
+CSP_STYLE_SRC = ("'self'", "https://cdn.jsdelivr.net",
+                 "https://cdnjs.cloudflare.com", "'unsafe-inline'")
+CSP_IMG_SRC = ("'self'", "data:", "https:")
+CSP_FONT_SRC = ("'self'", "https://cdn.jsdelivr.net")
+
+# Additional Security
+SECURE_HSTS_SECONDS = 31536000
+SECURE_HSTS_INCLUDE_SUBDOMAINS = True
+SECURE_SSL_REDIRECT = False  # Set to True when using HTTPS
+
+# Permissions Policy
+PERMISSIONS_POLICY = {
+    "geolocation": [],
+    "microphone": [],
+    "camera": [],
+}

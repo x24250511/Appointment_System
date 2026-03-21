@@ -56,3 +56,4 @@ vine
 wcwidth
 whitenoise
 wrapt
+django-csp
