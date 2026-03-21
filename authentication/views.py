@@ -166,25 +166,20 @@ def register_view(request):
     return render(request, 'auth/register.html')
 
 
+@login_required
 def logout_view(request):
-    """Logout and redirect"""
-    # Clear OTP records for this user
-    if request.user.is_authenticated:
-        try:
-            OTPVerification.objects.filter(email=request.user.email).delete()
-            print(f"[LOGOUT] Cleared OTP records for {request.user.email}")
-        except Exception as e:
-            print(f"[LOGOUT] Error clearing OTP records: {e}")
+    """Logout view with OTP cleanup"""
+    user_email = request.user.email
 
-    # Clear pending session data
-    if 'pending_user_id' in request.session:
-        del request.session['pending_user_id']
-    if 'pending_user_email' in request.session:
-        del request.session['pending_user_email']
+    # Clear any pending OTP records
+    OTPVerification.objects.filter(email=user_email).delete()
+    print(f"[LOGOUT] Cleared OTP records for {user_email}")
 
+    # Logout
     logout(request)
+
     messages.success(request, 'You have been logged out successfully.')
-    return redirect('home')
+    return redirect('/')  # Changed from 'home' to '/'
 
 
 @login_required
