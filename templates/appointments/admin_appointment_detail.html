@@ -1,0 +1,268 @@
+{% extends 'base.html' %}
+
+{% block title %}Appointment Details - Admin{% endblock %}
+
+{% block extra_css %}
+<style>
+    .admin-sidebar {
+        min-height: 100vh;
+        background: linear-gradient(135deg, #1e3c72 0%, #2a5298 100%);
+    }
+
+    .admin-sidebar a {
+        color: rgba(255, 255, 255, 0.8);
+        padding: 15px 20px;
+        display: block;
+        text-decoration: none;
+        transition: 0.3s;
+    }
+
+    .admin-sidebar a:hover,
+    .admin-sidebar a.active {
+        background: rgba(255, 255, 255, 0.1);
+        color: white;
+    }
+
+    .detail-card {
+        background: white;
+        border-radius: 12px;
+        padding: 30px;
+        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+        margin-bottom: 20px;
+    }
+
+    .info-row {
+        padding: 12px 0;
+        border-bottom: 1px solid #f0f0f0;
+    }
+
+    .info-row:last-child {
+        border-bottom: none;
+    }
+
+    .info-label {
+        font-weight: 600;
+        color: #666;
+        width: 200px;
+        display: inline-block;
+    }
+
+    .action-btn {
+        margin: 5px;
+    }
+
+    .history-item {
+        padding: 15px;
+        background: #f8f9fa;
+        border-left: 4px solid #007bff;
+        margin-bottom: 10px;
+        border-radius: 4px;
+    }
+
+    .status-badge-large {
+        font-size: 1.2rem;
+        padding: 10px 20px;
+        border-radius: 8px;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <div class="row">
+        <!-- Admin Sidebar -->
+        <div class="col-md-2 admin-sidebar text-white p-0">
+            <div class="p-4">
+                <h4 class="mb-4">
+                    <i class="bi bi-shield-lock"></i> Admin Panel
+                </h4>
+            </div>
+            <nav>
+                <a href="{% url 'admin_dashboard' %}">
+                    <i class="bi bi-speedometer2"></i> Dashboard
+                </a>
+                <a href="{% url 'admin_appointments' %}" class="active">
+                    <i class="bi bi-calendar-check"></i> Manage Appointments
+                </a>
+                <a href="{% url 'dashboard' %}">
+                    <i class="bi bi-house"></i> User Dashboard
+                </a>
+                <a href="/admin/">
+                    <i class="bi bi-gear"></i> Django Admin
+                </a>
+                <a href="{% url 'logout_view' %}">
+                    <i class="bi bi-box-arrow-right"></i> Logout
+                </a>
+            </nav>
+        </div>
+
+        <!-- Main Content -->
+        <div class="col-md-10 p-4">
+            <div class="d-flex justify-content-between align-items-center mb-4">
+                <h2>Appointment Details</h2>
+                <a href="{% url 'admin_appointments' %}" class="btn btn-outline-secondary">
+                    <i class="bi bi-arrow-left"></i> Back to List
+                </a>
+            </div>
+
+            {% if messages %}
+            {% for message in messages %}
+            <div class="alert alert-{{ message.tags }} alert-dismissible fade show">
+                {{ message }}
+                <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+            </div>
+            {% endfor %}
+            {% endif %}
+
+            <!-- Appointment Information -->
+            <div class="detail-card">
+                <div class="d-flex justify-content-between align-items-start mb-4">
+                    <div>
+                        <h4>{{ appointment.title }}</h4>
+                        <p class="text-muted mb-0">ID: {{ appointment.id }}</p>
+                    </div>
+                    <div>
+                        {% if appointment.status == 'pending' %}
+                        <span class="badge bg-warning status-badge-large">
+                            <i class="bi bi-clock-history"></i> Pending
+                        </span>
+                        {% elif appointment.status == 'confirmed' %}
+                        <span class="badge bg-success status-badge-large">
+                            <i class="bi bi-check-circle"></i> Confirmed
+                        </span>
+                        {% elif appointment.status == 'completed' %}
+                        <span class="badge bg-info status-badge-large">
+                            <i class="bi bi-check-all"></i> Completed
+                        </span>
+                        {% elif appointment.status == 'cancelled' %}
+                        <span class="badge bg-danger status-badge-large">
+                            <i class="bi bi-x-circle"></i> Cancelled
+                        </span>
+                        {% endif %}
+                    </div>
+                </div>
+
+                <div class="info-row">
+                    <span class="info-label"><i class="bi bi-person"></i> Customer:</span>
+                    <span>{{ appointment.user.username }} ({{ appointment.user.email }})</span>
+                </div>
+
+                <div class="info-row">
+                    <span class="info-label"><i class="bi bi-briefcase"></i> Industry:</span>
+                    <span>
+                        {% if appointment.industry == 'healthcare' %}
+                        <span class="badge bg-info"><i class="bi bi-heart-pulse"></i> Healthcare</span>
+                        {% elif appointment.industry == 'legal' %}
+                        <span class="badge bg-secondary"><i class="bi bi-briefcase"></i> Legal Services</span>
+                        {% elif appointment.industry == 'consultancy' %}
+                        <span class="badge bg-warning"><i class="bi bi-lightbulb"></i> Professional Consultancy</span>
+                        {% endif %}
+                    </span>
+                </div>
+
+                <div class="info-row">
+                    <span class="info-label"><i class="bi bi-calendar3"></i> Date:</span>
+                    <span>{{ appointment.appointment_date|date:"F d, Y" }}</span>
+                </div>
+
+                <div class="info-row">
+                    <span class="info-label"><i class="bi bi-clock"></i> Time:</span>
+                    <span>{{ appointment.appointment_time|time:"g:i A" }}</span>
+                </div>
+
+                <div class="info-row">
+                    <span class="info-label"><i class="bi bi-geo-alt"></i> Location:</span>
+                    <span>{{ appointment.location }}</span>
+                </div>
+
+                <div class="info-row">
+                    <span class="info-label"><i class="bi bi-file-text"></i> Description:</span>
+                    <span>{{ appointment.description }}</span>
+                </div>
+
+                <div class="info-row">
+                    <span class="info-label"><i class="bi bi-calendar-plus"></i> Created:</span>
+                    <span>{{ appointment.created_at|date:"F d, Y g:i A" }}</span>
+                </div>
+
+                <div class="info-row">
+                    <span class="info-label"><i class="bi bi-envelope"></i> Email Sent:</span>
+                    <span>
+                        {% if appointment.email_sent %}
+                        <i class="bi bi-check-circle text-success"></i> Yes
+                        {% else %}
+                        <i class="bi bi-x-circle text-danger"></i> No
+                        {% endif %}
+                    </span>
+                </div>
+            </div>
+
+            <!-- Action Buttons -->
+            <div class="detail-card">
+                <h5 class="mb-3">Actions</h5>
+                <div class="d-flex flex-wrap">
+                    {% if appointment.status == 'pending' %}
+                    <a href="{% url 'admin_confirm' appointment.id %}" class="btn btn-success action-btn">
+                        <i class="bi bi-check-circle"></i> Confirm & Send Email
+                    </a>
+                    {% endif %}
+
+                    {% if appointment.status == 'confirmed' %}
+                    <a href="{% url 'admin_complete' appointment.id %}" class="btn btn-info action-btn">
+                        <i class="bi bi-check-all"></i> Mark as Completed
+                    </a>
+                    {% endif %}
+
+                    {% if appointment.status != 'cancelled' %}
+                    <a href="{% url 'admin_cancel' appointment.id %}" class="btn btn-danger action-btn"
+                        onclick="return confirm('Are you sure you want to cancel this appointment? An email will be sent to the customer.')">
+                        <i class="bi bi-x-circle"></i> Cancel & Notify Customer
+                    </a>
+                    {% endif %}
+
+                    <a href="{% url 'appointment_edit' appointment.id %}" class="btn btn-warning action-btn">
+                        <i class="bi bi-pencil"></i> Edit Details
+                    </a>
+                </div>
+            </div>
+
+            <!-- History Timeline -->
+            <div class="detail-card">
+                <h5 class="mb-3"><i class="bi bi-clock-history"></i> Activity History</h5>
+                {% if history %}
+                {% for record in history %}
+                <div class="history-item">
+                    <div class="d-flex justify-content-between">
+                        <strong>
+                            {% if record.action == 'created' %}
+                            <i class="bi bi-plus-circle text-primary"></i> Created
+                            {% elif record.action == 'confirmed' %}
+                            <i class="bi bi-check-circle text-success"></i> Confirmed
+                            {% elif record.action == 'completed' %}
+                            <i class="bi bi-check-all text-info"></i> Completed
+                            {% elif record.action == 'cancelled' %}
+                            <i class="bi bi-x-circle text-danger"></i> Cancelled
+                            {% elif record.action == 'updated' %}
+                            <i class="bi bi-pencil text-warning"></i> Updated
+                            {% endif %}
+                        </strong>
+                        <small class="text-muted">{{ record.timestamp|date:"F d, Y g:i A" }}</small>
+                    </div>
+                    <div class="mt-1">
+                        <small>By: {{ record.performed_by.username }}</small>
+                    </div>
+                    {% if record.notes %}
+                    <div class="mt-2">
+                        <small class="text-muted">{{ record.notes }}</small>
+                    </div>
+                    {% endif %}
+                </div>
+                {% endfor %}
+                {% else %}
+                <p class="text-muted">No history records available.</p>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
