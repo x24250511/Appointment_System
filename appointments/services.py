@@ -5,13 +5,11 @@ import json
 
 
 class LocationService:
-    """Geocode and validate locations using OpenStreetMap Nominatim API"""
 
     BASE_URL = "https://nominatim.openstreetmap.org"
 
     @staticmethod
-    def geocode_location(location):
-        """Convert location name/address to coordinates"""
+    def geocode_location(location):  # Map API integration
         try:
             print(f"\n{'='*60}")
             print(f"[MAPS API] Geocoding location: {location}")

@@ -35,40 +35,32 @@
         margin-bottom: 20px;
     }
 
-    .detail-row {
+    .info-row {
         display: flex;
         padding: 15px 0;
         border-bottom: 1px solid #f0f0f0;
     }
 
-    .detail-row:last-child {
+    .info-row:last-child {
         border-bottom: none;
     }
 
-    .detail-label {
+    .info-label {
         font-weight: 600;
-        width: 200px;
         color: #666;
+        min-width: 150px;
     }
 
-    .detail-value {
+    .info-value {
         flex: 1;
         color: #333;
     }
 
-    .map-container {
-        margin-top: 20px;
-        border: 1px solid #ddd;
-        border-radius: 8px;
-        overflow: hidden;
-    }
-
     .status-badge {
-        display: inline-block;
-        padding: 8px 16px;
+        padding: 10px 20px;
         border-radius: 20px;
         font-weight: 600;
-        font-size: 14px;
+        display: inline-block;
     }
 
     .status-pending {
@@ -107,7 +99,7 @@
                 <a href="{% url 'dashboard' %}">
                     <i class="bi bi-speedometer2"></i> Dashboard
                 </a>
-                <a href="{% url 'appointment_list' %}" class="active">
+                <a href="{% url 'appointment_list' %}">
                     <i class="bi bi-calendar3"></i> Appointments
                 </a>
                 <a href="{% url 'appointment_create' %}">
@@ -116,6 +108,14 @@
                 <a href="{% url 'profile' %}">
                     <i class="bi bi-person"></i> Profile
                 </a>
+
+                {% if user.is_staff %}
+                <a href="{% url 'admin_dashboard' %}"
+                    style="background: rgba(20,184,166,0.2); border-left: 4px solid #14b8a6;">
+                    <i class="bi bi-shield-lock"></i> Admin Panel
+                </a>
+                {% endif %}
+
                 <a href="/">
                     <i class="bi bi-house"></i> Home
                 </a>
@@ -128,145 +128,155 @@
         <!-- Main Content -->
         <div class="col-md-10 main-content">
             <div class="d-flex justify-content-between align-items-center mb-4">
-                <div>
-                    <h2>{{ appointment.title }}</h2>
-                    <p class="text-muted">Appointment Details</p>
-                </div>
-                <div>
-                    <!-- User can only Cancel pending/confirmed appointments -->
-                    {% if appointment.status == 'pending' %}
-                    <div class="alert alert-info mb-3">
-                        <i class="bi bi-clock"></i> This appointment is pending approval from the service provider.
-                    </div>
-                    <form method="POST" action="{% url 'appointment_change_status' appointment.id %}"
-                        style="display: inline;">
-                        {% csrf_token %}
-                        <input type="hidden" name="status" value="cancelled">
-                        <button type="submit" class="btn btn-warning me-2">
-                            <i class="bi bi-x-circle"></i> Cancel Appointment
-                        </button>
-                    </form>
-                    {% elif appointment.status == 'confirmed' %}
-                    <div class="alert alert-success mb-3">
-                        <i class="bi bi-check-circle"></i> Your appointment has been confirmed by the provider!
-                    </div>
-                    <form method="POST" action="{% url 'appointment_change_status' appointment.id %}"
-                        style="display: inline;">
-                        {% csrf_token %}
-                        <input type="hidden" name="status" value="cancelled">
-                        <button type="submit" class="btn btn-warning me-2">
-                            <i class="bi bi-x-circle"></i> Cancel Appointment
-                        </button>
-                    </form>
-                    {% elif appointment.status == 'completed' %}
-                    <div class="alert alert-secondary mb-3">
-                        <i class="bi bi-check2-circle"></i> This appointment has been completed.
-                    </div>
-                    {% elif appointment.status == 'cancelled' %}
-                    <div class="alert alert-danger mb-3">
-                        <i class="bi bi-x-circle"></i> This appointment was cancelled.
-                    </div>
-                    {% endif %}
+                <h2>{{ appointment.title }}</h2>
+                <a href="{% url 'appointment_list' %}" class="btn btn-outline-secondary">
+                    <i class="bi bi-arrow-left"></i> Back to List
+                </a>
+            </div>
 
-                    <!-- Edit and Delete (only if not completed/cancelled) -->
-                    {% if appointment.status == 'pending' or appointment.status == 'confirmed' %}
-                    <a href="{% url 'appointment_edit' appointment.id %}" class="btn btn-outline-primary me-2">
-                        <i class="bi bi-pencil"></i> Edit Details
-                    </a>
-                    {% endif %}
+            {% if messages %}
+            {% for message in messages %}
+            <div class="alert alert-{{ message.tags }} alert-dismissible fade show">
+                {{ message }}
+                <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+            </div>
+            {% endfor %}
+            {% endif %}
 
-                    <a href="{% url 'appointment_delete' appointment.id %}" class="btn btn-outline-danger">
-                        <i class="bi bi-trash"></i> Delete
-                    </a>
-                </div>
+            <!-- Status Alert -->
+            {% if appointment.status == 'pending' %}
+            <div class="alert alert-info">
+                <i class="bi bi-clock-history"></i> This appointment is pending approval from the service provider.
+            </div>
+            {% elif appointment.status == 'confirmed' %}
+            <div class="alert alert-success">
+                <i class="bi bi-check-circle"></i> This appointment has been confirmed!
+            </div>
+            {% elif appointment.status == 'cancelled' %}
+            <div class="alert alert-danger">
+                <i class="bi bi-x-circle"></i> This appointment has been cancelled.
+            </div>
+            {% elif appointment.status == 'completed' %}
+            <div class="alert alert-info">
+                <i class="bi bi-check-all"></i> This appointment has been completed.
+            </div>
+            {% endif %}
 
-                {% if messages %}
-                {% for message in messages %}
-                <div class="alert alert-{{ message.tags }} alert-dismissible fade show">
-                    {{ message }}
-                    <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
-                </div>
-                {% endfor %}
-                {% endif %}
+            <div class="row">
+                <!-- Left Column - Basic Information -->
+                <div class="col-md-6">
+                    <div class="detail-card">
+                        <h5 class="mb-3">Basic Information</h5>
 
-                <div class="detail-card">
-                    <h4 class="mb-4">Basic Information</h4>
+                        <div class="info-row">
+                            <div class="info-label">Status</div>
+                            <div class="info-value">
+                                {% if appointment.status == 'pending' %}
+                                <span class="status-badge status-pending">Pending</span>
+                                {% elif appointment.status == 'confirmed' %}
+                                <span class="status-badge status-confirmed">Confirmed</span>
+                                {% elif appointment.status == 'cancelled' %}
+                                <span class="status-badge status-cancelled">Cancelled</span>
+                                {% elif appointment.status == 'completed' %}
+                                <span class="status-badge status-completed">Completed</span>
+                                {% endif %}
+                            </div>
+                        </div>
 
-                    <div class="detail-row">
-                        <div class="detail-label">Status</div>
-                        <div class="detail-value">
-                            <span class="badge bg-{{ appointment.status }}">
-                                {{ appointment.get_status_display }}
-                            </span>
+                        <div class="info-row">
+                            <div class="info-label">Title</div>
+                            <div class="info-value">{{ appointment.title }}</div>
+                        </div>
+
+                        <div class="info-row">
+                            <div class="info-label">Description</div>
+                            <div class="info-value">{{ appointment.description }}</div>
+                        </div>
+
+                        <div class="info-row">
+                            <div class="info-label">Date</div>
+                            <div class="info-value">{{ appointment.appointment_date|date:"F d, Y" }}</div>
+                        </div>
+
+                        <div class="info-row">
+                            <div class="info-label">Time</div>
+                            <div class="info-value">{{ appointment.appointment_time|time:"g:i A" }}</div>
+                        </div>
+
+                        <div class="info-row">
+                            <div class="info-label">Location</div>
+                            <div class="info-value">{{ appointment.location }}</div>
+                        </div>
+
+                        <div class="info-row">
+                            <div class="info-label">Coordinates</div>
+                            <div class="info-value">
+                                {% if location_data.found %}
+                                {{ location_data.latitude }}, {{ location_data.longitude }}
+                                {% else %}
+                                Not available
+                                {% endif %}
+                            </div>
+                        </div>
+
+                        <div class="info-row">
+                            <div class="info-label">Created</div>
+                            <div class="info-value">{{ appointment.created_at|date:"F d, Y g:i A" }}</div>
+                        </div>
+
+                        <div class="info-row">
+                            <div class="info-label">Last Updated</div>
+                            <div class="info-value">{{ appointment.updated_at|date:"F d, Y g:i A" }}</div>
                         </div>
                     </div>
+                </div>
 
-                    <div class="detail-row">
-                        <div class="detail-label">Title</div>
-                        <div class="detail-value">{{ appointment.title }}</div>
+                <!-- Right Column - Location Map -->
+                <div class="col-md-6">
+                    <div class="detail-card">
+                        <h5 class="mb-3">Location Map</h5>
+                        {% if location_data.found %}
+                        <div class="text-center">
+                            <p class="text-muted mb-3">{{ location_data.display_name }}</p>
+                            <a href="{{ map_url }}" target="_blank" class="btn btn-primary">
+                                <i class="bi bi-map"></i> View on OpenStreetMap
+                            </a>
+                        </div>
+                        {% else %}
+                        <p class="text-muted text-center">Location information not available</p>
+                        {% endif %}
                     </div>
 
-                    <div class="detail-row">
-                        <div class="detail-label">Description</div>
-                        <div class="detail-value">{{ appointment.description }}</div>
-                    </div>
+                    <!-- Actions -->
+                    <div class="detail-card mt-3">
+                        <h5 class="mb-3">Actions</h5>
+                        <div class="d-flex gap-2">
+                            {% if appointment.status == 'pending' or appointment.status == 'confirmed' %}
+                            <a href="{% url 'appointment_edit' appointment.id %}" class="btn btn-warning">
+                                <i class="bi bi-pencil"></i> Edit
+                            </a>
 
-                    <div class="detail-row">
-                        <div class="detail-label">Date</div>
-                        <div class="detail-value">{{ appointment.appointment_date|date:"F d, Y" }}</div>
-                    </div>
-
-                    <div class="detail-row">
-                        <div class="detail-label">Time</div>
-                        <div class="detail-value">{{ appointment.appointment_time|time:"g:i A" }}</div>
-                    </div>
-
-                    <div class="detail-row">
-                        <div class="detail-label">Location</div>
-                        <div class="detail-value">
-                            {{ appointment.location }}
-                            {% if location_data.found %}
-                            <br>
-                            <small class="text-muted">{{ location_data.display_name }}</small>
+                            {% if appointment.status != 'cancelled' %}
+                            <form method="POST" action="{% url 'appointment_change_status' appointment.id %}"
+                                style="display: inline;">
+                                {% csrf_token %}
+                                <input type="hidden" name="new_status" value="cancelled">
+                                <button type="submit" class="btn btn-danger"
+                                    onclick="return confirm('Are you sure you want to cancel this appointment?')">
+                                    <i class="bi bi-x-circle"></i> Cancel Appointment
+                                </button>
+                            </form>
                             {% endif %}
+                            {% endif %}
+
+                            <a href="{% url 'appointment_delete' appointment.id %}" class="btn btn-outline-danger">
+                                <i class="bi bi-trash"></i> Delete
+                            </a>
                         </div>
                     </div>
-
-                    {% if location_data.found %}
-                    <div class="detail-row">
-                        <div class="detail-label">Coordinates</div>
-                        <div class="detail-value">
-                            {{ location_data.latitude }}, {{ location_data.longitude }}
-                        </div>
-                    </div>
-                    {% endif %}
-
-                    <div class="detail-row">
-                        <div class="detail-label">Created</div>
-                        <div class="detail-value">{{ appointment.created_at|date:"F d, Y g:i A" }}</div>
-                    </div>
-
-                    <div class="detail-row">
-                        <div class="detail-label">Last Updated</div>
-                        <div class="detail-value">{{ appointment.updated_at|date:"F d, Y g:i A" }}</div>
-                    </div>
-                </div>
-
-                {% if map_url %}
-                <div class="detail-card">
-                    <h4 class="mb-3">Location Map</h4>
-                    <a href="{{ map_url }}" target="_blank" class="btn btn-outline-primary">
-                        <i class="bi bi-map"></i> View on OpenStreetMap
-                    </a>
-                </div>
-                {% endif %}
-
-                <div class="mt-3">
-                    <a href="{% url 'appointment_list' %}" class="btn btn-outline-secondary">
-                        <i class="bi bi-arrow-left"></i> Back to List
-                    </a>
                 </div>
             </div>
         </div>
     </div>
-    {% endblock %}
+</div>
+{% endblock %}
