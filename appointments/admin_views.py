@@ -12,7 +12,7 @@ def is_staff(user):
     return user.is_staff or user.is_superuser
 
 
-@login_required
+@login_required(login_url="/auth/login/")
 @user_passes_test(is_staff)
 def admin_dashboard_view(request):
     """Admin dashboard showing appointment statistics"""
@@ -47,7 +47,7 @@ def admin_dashboard_view(request):
     return render(request, 'appointments/admin_dashboard.html', context)
 
 
-@login_required
+@login_required(login_url="/auth/login/")
 @user_passes_test(is_staff)
 def admin_appointments_view(request):
     """Admin view to manage all appointments"""
@@ -83,7 +83,7 @@ def admin_appointments_view(request):
     return render(request, 'appointments/admin_appointments.html', context)
 
 
-@login_required
+@login_required(login_url="/auth/login/")
 @user_passes_test(is_staff)
 def admin_appointment_detail_view(request, appointment_id):
     """Admin view for single appointment with actions"""
@@ -99,7 +99,7 @@ def admin_appointment_detail_view(request, appointment_id):
     return render(request, 'appointments/admin_appointment_detail.html', context)
 
 
-@login_required
+@login_required(login_url="/auth/login/")
 @user_passes_test(is_staff)
 def admin_confirm_appointment(request, appointment_id):
     """Confirm an appointment and send email"""
@@ -156,7 +156,7 @@ SecureFlow Team
     return redirect('admin_appointment_detail', appointment_id=appointment_id)
 
 
-@login_required
+@login_required(login_url="/auth/login/")
 @user_passes_test(is_staff)
 def admin_complete_appointment(request, appointment_id):
     """Mark appointment as completed"""
@@ -177,7 +177,7 @@ def admin_complete_appointment(request, appointment_id):
     return redirect('admin_appointment_detail', appointment_id=appointment_id)
 
 
-@login_required
+@login_required(login_url="/auth/login/")
 @user_passes_test(is_staff)
 def admin_cancel_appointment(request, appointment_id):
     """Cancel appointment and notify user"""

@@ -94,26 +94,26 @@
                     <div class="col-md-3">
                         <label class="form-label">Status</label>
                         <select name="status" class="form-select">
-                            <option value="all" {% if status_filter=='all' %}selected{% endif %}>All Status</option>
-                            <option value="pending" {% if status_filter=='pending' %}selected{% endif %}>Pending
+                            <option value="all" {% if status_filter == 'all' %}selected{% endif %}>All Status</option>
+                            <option value="pending" {% if status_filter == 'pending' %}selected{% endif %}>Pending
                             </option>
-                            <option value="confirmed" {% if status_filter=='confirmed' %}selected{% endif %}>Confirmed
+                            <option value="confirmed" {% if status_filter == 'confirmed' %}selected{% endif %}>Confirmed
                             </option>
-                            <option value="completed" {% if status_filter=='completed' %}selected{% endif %}>Completed
+                            <option value="completed" {% if status_filter == 'completed' %}selected{% endif %}>Completed
                             </option>
-                            <option value="cancelled" {% if status_filter=='cancelled' %}selected{% endif %}>Cancelled
+                            <option value="cancelled" {% if status_filter == 'cancelled' %}selected{% endif %}>Cancelled
                             </option>
                         </select>
                     </div>
                     <div class="col-md-3">
                         <label class="form-label">Industry</label>
                         <select name="industry" class="form-select">
-                            <option value="all" {% if industry_filter=='all' %}selected{% endif %}>All Industries
+                            <option value="all" {% if industry_filter == 'all' %}selected{% endif %}>All Industries
                             </option>
-                            <option value="healthcare" {% if industry_filter=='healthcare' %}selected{% endif %}>
+                            <option value="healthcare" {% if industry_filter == 'healthcare' %}selected{% endif %}>
                                 Healthcare</option>
-                            <option value="legal" {% if industry_filter=='legal' %}selected{% endif %}>Legal</option>
-                            <option value="consultancy" {% if industry_filter=='consultancy' %}selected{% endif %}>
+                            <option value="legal" {% if industry_filter == 'legal' %}selected{% endif %}>Legal</option>
+                            <option value="consultancy" {% if industry_filter == 'consultancy' %}selected{% endif %}>
                                 Consultancy</option>
                         </select>
                     </div>
