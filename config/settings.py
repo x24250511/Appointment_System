@@ -173,13 +173,13 @@ AWS_SQS_QUEUE_URL = config('AWS_SQS_QUEUE_URL', default='')
 OTP_SERVICE_URL = config(
     'OTP_SERVICE_URL', default='http://otpapi-env.eba-pjkmm4m3.us-east-1.elasticbeanstalk.com')
 EMAIL_SERVICE_URL = config(
-    'EMAIL_SERVICE_URL', default='http://cmailapi-env.eba-vg3mwdtr.us-east-1.elasticbeanstalk.com')
+    'EMAIL_SERVICE_URL', default='https://27zlcvmy53.execute-api.us-east-1.amazonaws.com/Prod/api/send/')
 PDF_SERVICE_URL = config(
-    'PDF_SERVICE_URL', default='http://localhost:8003/api')
+    'PDF_SERVICE_URL', default='https://rz27c392l4.execute-api.us-east-1.amazonaws.com/html/pdf')
 APPOINTMENT_SERVICE_URL = config(
-    'APPOINTMENT_SERVICE_URL', default='http://localhost:8004')
+    'APPOINTMENT_SERVICE_URL', default='http://api-env.eba-45cakfm9.us-east-1.elasticbeanstalk.com')
 APPOINTMENT_API_KEY = config('APPOINTMENT_API_KEY', default='')
-WEATHER_API_KEY = config('WEATHER_API_KEY', default='')
+
 HEALTHCARE_PROVIDER_ID = config('HEALTHCARE_PROVIDER_ID', default='', cast=str)
 LEGAL_PROVIDER_ID = config('LEGAL_PROVIDER_ID', default='', cast=str)
 CONSULTANCY_PROVIDER_ID = config(

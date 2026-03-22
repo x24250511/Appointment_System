@@ -162,90 +162,90 @@ SecureFlow Team
 
 
 class PDFService:
-    """Generate PDF from HTML"""
-
+    """PDF generation service"""
     BASE_URL = settings.PDF_SERVICE_URL
 
     @staticmethod
-    def generate_pdf(html_content, filename):
-        """Convert HTML to PDF (placeholder - service offline)"""
+    def generate_appointment_pdf(appointment):
+        """Generate PDF for appointment confirmation"""
         try:
-            response = requests.post(
-                f"{PDFService.BASE_URL}/generate",
-                json={
-                    'html': html_content,
-                    'filename': filename
-                },
-                timeout=30
-            )
-            response.raise_for_status()
-            data = response.json()
-            return data.get('pdf_url')
-        except Exception as e:
-            print(f"[PDF Service] Service unavailable: {str(e)}")
-            return None
-
-    @staticmethod
-    def create_appointment_html(appointment, location_data=None):
-        """Create HTML template for appointment"""
-        location_info = ""
-        if location_data and location_data.get('found'):
-            location_info = f"""
-                <div class="detail">
-                    <span class="label">Coordinates:</span> {location_data['latitude']}, {location_data['longitude']}
+            # Create HTML content
+            html_content = f"""
+            <!DOCTYPE html>
+            <html>
+            <head>
+                <meta charset="UTF-8">
+                <style>
+                    body {{ font-family: Arial, sans-serif; margin: 40px; }}
+                    .header {{ text-align: center; color: #1e3a8a; margin-bottom: 30px; }}
+                    .info {{ margin: 20px 0; }}
+                    .label {{ font-weight: bold; color: #666; }}
+                    .value {{ color: #333; }}
+                    .footer {{ margin-top: 40px; text-align: center; color: #666; font-size: 12px; }}
+                </style>
+            </head>
+            <body>
+                <div class="header">
+                    <h1>SecureFlow Appointment Confirmation</h1>
                 </div>
-                <div class="detail">
-                    <span class="label">Full Address:</span> {location_data['display_name']}
+                
+                <div class="info">
+                    <p><span class="label">Appointment ID:</span> <span class="value">{appointment.id}</span></p>
+                    <p><span class="label">Title:</span> <span class="value">{appointment.title}</span></p>
+                    <p><span class="label">Patient/Client:</span> <span class="value">{appointment.user.username}</span></p>
+                    <p><span class="label">Email:</span> <span class="value">{appointment.user.email}</span></p>
                 </div>
+                
+                <div class="info">
+                    <p><span class="label">Industry:</span> <span class="value">{appointment.get_industry_display()}</span></p>
+                    <p><span class="label">Date:</span> <span class="value">{appointment.appointment_date.strftime('%B %d, %Y')}</span></p>
+                    <p><span class="label">Time:</span> <span class="value">{appointment.appointment_time.strftime('%I:%M %p')}</span></p>
+                    <p><span class="label">Location:</span> <span class="value">{appointment.location}</span></p>
+                </div>
+                
+                <div class="info">
+                    <p><span class="label">Description:</span></p>
+                    <p class="value">{appointment.description}</p>
+                </div>
+                
+                <div class="info">
+                    <p><span class="label">Status:</span> <span class="value">{appointment.get_status_display()}</span></p>
+                    <p><span class="label">Created:</span> <span class="value">{appointment.created_at.strftime('%B %d, %Y %I:%M %p')}</span></p>
+                </div>
+                
+                <div class="footer">
+                    <p>This is an automated confirmation from SecureFlow</p>
+                    <p>Please arrive 10 minutes early for your appointment</p>
+                </div>
+            </body>
+            </html>
             """
 
-        html = f"""
-        <!DOCTYPE html>
-        <html>
-        <head>
-            <style>
-                body {{ font-family: Arial, sans-serif; padding: 20px; }}
-                .header {{ background-color: #4CAF50; color: white; padding: 20px; text-align: center; }}
-                .content {{ margin: 20px 0; }}
-                .detail {{ margin: 10px 0; }}
-                .label {{ font-weight: bold; }}
-            </style>
-        </head>
-        <body>
-            <div class="header">
-                <h1>Appointment Confirmation</h1>
-            </div>
-            <div class="content">
-                <div class="detail">
-                    <span class="label">Appointment ID:</span> {appointment.id}
-                </div>
-                <div class="detail">
-                    <span class="label">Industry:</span> {appointment.get_industry_display()}
-                </div>
-                <div class="detail">
-                    <span class="label">Title:</span> {appointment.title}
-                </div>
-                <div class="detail">
-                    <span class="label">Description:</span> {appointment.description}
-                </div>
-                <div class="detail">
-                    <span class="label">Date:</span> {appointment.appointment_date}
-                </div>
-                <div class="detail">
-                    <span class="label">Time:</span> {appointment.appointment_time}
-                </div>
-                <div class="detail">
-                    <span class="label">Location:</span> {appointment.location}
-                </div>
-                {location_info}
-                <div class="detail">
-                    <span class="label">Status:</span> {appointment.get_status_display()}
-                </div>
-            </div>
-        </body>
-        </html>
-        """
-        return html
+            # Make API request
+            response = requests.post(
+                PDFService.BASE_URL,
+                headers={'Content-Type': 'text/html'},
+                data=html_content.encode('utf-8'),
+                timeout=30
+            )
+
+            if response.status_code == 200:
+                return {
+                    'success': True,
+                    'pdf_data': response.content,
+                    'content_type': 'application/pdf'
+                }
+            else:
+                return {
+                    'success': False,
+                    'error': f'PDF service returned {response.status_code}'
+                }
+
+        except requests.exceptions.RequestException as e:
+            return {
+                'success': False,
+                'error': f'PDF generation failed: {str(e)}'
+            }
 
 
 class AppointmentCreatorService:
