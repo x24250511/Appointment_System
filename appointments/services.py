@@ -2,6 +2,7 @@ import requests
 from django.conf import settings
 from datetime import datetime
 import json
+from decouple import config
 
 
 class LocationService:
@@ -73,8 +74,7 @@ class LocationService:
 
 class EmailService:
     """Email notification service using CloudMail API"""
-    BASE_URL = config('EMAIL_SERVICE_URL',
-                      default='https://2rsma0i53j.execute-api.us-east-1.amazonaws.com/prod')
+    BASE_URL = settings.EMAIL_SERVICE_URL  # Use Django settings
 
     @staticmethod
     def send_email(to_email, subject, body, from_email='noreply@secureflow.com', from_name='SecureFlow'):
