@@ -12,8 +12,7 @@ def home_view(request):
     return render(request, 'home.html')
 
 
-def login_view(request):
-    """Login page - Step 1: Username + Password"""
+def login_view(request):  # User LOGIN with Password
     if request.user.is_authenticated:
         return redirect('dashboard')
 
@@ -80,7 +79,6 @@ def login_view(request):
 
 
 def login_verify_otp_view(request):
-    """Login Step 2: Verify OTP and complete login"""
     # Check if there's a pending login
     pending_user_id = request.session.get('pending_user_id')
     pending_email = request.session.get('pending_user_email')
