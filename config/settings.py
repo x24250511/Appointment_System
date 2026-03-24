@@ -173,7 +173,7 @@ AWS_SQS_QUEUE_URL = config('AWS_SQS_QUEUE_URL', default='')
 OTP_SERVICE_URL = config(
     'OTP_SERVICE_URL', default='http://otpapi-env.eba-pjkmm4m3.us-east-1.elasticbeanstalk.com')
 EMAIL_SERVICE_URL = config(
-    'EMAIL_SERVICE_URL', default='https://27zlcvmy53.execute-api.us-east-1.amazonaws.com/Prod/api/send/')
+    'EMAIL_SERVICE_URL', default='https://2rsma0i53j.execute-api.us-east-1.amazonaws.com/prod/api/send/')
 PDF_SERVICE_URL = config(
     'PDF_SERVICE_URL', default='https://rz27c392l4.execute-api.us-east-1.amazonaws.com/html/pdf')
 APPOINTMENT_SERVICE_URL = config(
