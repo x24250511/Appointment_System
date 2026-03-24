@@ -72,46 +72,49 @@ class LocationService:
 
 
 class EmailService:
-    """Send emails using CloudMail API"""
-
-    BASE_URL = settings.EMAIL_SERVICE_URL
+    """Email notification service using CloudMail API"""
+    BASE_URL = config('EMAIL_SERVICE_URL',
+                      default='https://2rsma0i53j.execute-api.us-east-1.amazonaws.com/prod')
 
     @staticmethod
-    def send_email(to_email, subject, body, from_name="SecureFlow"):
+    def send_email(to_email, subject, body, from_email='noreply@secureflow.com', from_name='SecureFlow'):
         """Send email via CloudMail API"""
         try:
-            print(f"\n{'='*60}")
-            print(f"[EMAIL] Sending to: {to_email}")
-            print(f"[EMAIL] Subject: {subject}")
+            print(f"[EMAIL] Attempting to send to: {to_email}")
+            print(f"[EMAIL] Using endpoint: {EmailService.BASE_URL}/api/send/")
 
-            data = {
-                'to_email': to_email,
+            # Prepare form data payload
+            payload = {
+                'to': to_email,
                 'subject': subject,
-                'message': body,
-                'from_name': from_name,
+                'body': body,
+                'from_email': from_email,
+                'from_name': from_name
             }
 
+            # Make API request with form-data
             response = requests.post(
-                f"{EmailService.BASE_URL}/api/send/",
-                data=data,
+                f'{EmailService.BASE_URL}/api/send/',
+                data=payload,
                 timeout=30
             )
 
-            print(f"[EMAIL] Response Status: {response.status_code}")
+            print(f"[EMAIL] Status: {response.status_code}")
+            print(f"[EMAIL] Response: {response.text}")
 
             if response.status_code == 200:
-                print(f"[EMAIL] ✓ Email sent successfully")
-                print(f"{'='*60}\n")
-                return True, "Email sent successfully"
+                print(f"[EMAIL] ✓ Success: Email sent to {to_email}")
+                return {'success': True, 'message': 'Email sent successfully'}
             else:
                 print(f"[EMAIL] ✗ Failed: {response.text}")
-                print(f"{'='*60}\n")
-                return False, "Failed to send email"
+                return {'success': False, 'message': f'Failed to send email'}
 
-        except Exception as e:
-            print(f"[EMAIL ERROR] ✗ {str(e)}")
-            print(f"{'='*60}\n")
-            return False, f"Email service error: {str(e)}"
+        except requests.exceptions.Timeout:
+            print(f"[EMAIL] ✗ Timeout")
+            return {'success': False, 'message': 'Email service timeout'}
+        except requests.exceptions.RequestException as e:
+            print(f"[EMAIL] ✗ Error: {str(e)}")
+            return {'success': False, 'message': f'Email error: {str(e)}'}
 
     @staticmethod
     def send_otp_email(email, otp_code):
