@@ -40,10 +40,6 @@ def login_view(request):  # User LOGIN with Password
                 request.session['pending_user_email'] = user.email
                 print(f"[DEBUG] Stored in session: user_id={user.id}")
 
-                # TEMPORARY: Store OTP in session for on-screen display
-                # TODO: Remove this once email service is fully operational
-                request.session['otp_display'] = otp_code
-
                 # Try to send OTP via email
                 from appointments.services import EmailService
                 print(f"[DEBUG] Calling Email service...")
@@ -57,19 +53,17 @@ def login_view(request):  # User LOGIN with Password
                     if email_success:
                         messages.success(
                             request, f'OTP sent to {user.email}. Please check your inbox.')
-                        # Email worked, don't need to display on screen
-                        request.session['otp_display'] = None
                     else:
                         messages.warning(
-                            request, f'Email delivery failed. OTP will be displayed on next screen.')
+                            request, f'Email delivery failed: {email_message}')
 
                 except Exception as e:
                     print(
                         f"[DEBUG] Email service exception: {type(e).__name__}: {str(e)}")
                     import traceback
                     traceback.print_exc()
-                    messages.warning(
-                        request, f'Email service unavailable. OTP will be displayed on next screen.')
+                    messages.error(
+                        request, f'Email service unavailable. Please try again later.')
 
                 print(f"[DEBUG] Redirecting to verify OTP page")
                 return redirect('login_verify_otp')
@@ -89,10 +83,6 @@ def login_verify_otp_view(request):
     pending_user_id = request.session.get('pending_user_id')
     pending_email = request.session.get('pending_user_email')
 
-    # TEMPORARY: Get OTP for on-screen display
-    # TODO: Remove this once email service is fully operational
-    otp_display = request.session.get('otp_display', None)
-
     if not pending_user_id:
         messages.error(request, 'No login in progress. Please login first.')
         return redirect('login_view')
@@ -111,9 +101,6 @@ def login_verify_otp_view(request):
             # Clear session data
             del request.session['pending_user_id']
             del request.session['pending_user_email']
-            # TEMPORARY: Clear OTP display from session
-            if 'otp_display' in request.session:
-                del request.session['otp_display']
 
             # Clear OTP records after successful login
             OTPVerification.objects.filter(email=pending_email).delete()
@@ -124,8 +111,7 @@ def login_verify_otp_view(request):
             messages.error(request, message)
 
     return render(request, 'auth/login_verify_otp.html', {
-        'email': pending_email,
-        'otp_display': otp_display  # TEMPORARY: Pass OTP to template
+        'email': pending_email
     })
 
 

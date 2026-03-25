@@ -19,33 +19,9 @@
         {% endfor %}
         {% endif %}
 
-        <!-- TEMPORARY: Display OTP on screen if email failed -->
-        {% if otp_display %}
-        <div class="alert alert-warning border-warning mb-4">
-            <div class="d-flex align-items-center mb-2">
-                <i class="bi bi-exclamation-triangle-fill me-2" style="font-size: 1.5rem;"></i>
-                <strong>TEMPORARY MODE - Email Service Unavailable</strong>
-            </div>
-            <hr>
-            <p class="mb-2">Your OTP code is displayed below (email delivery temporarily disabled):</p>
-            <div class="text-center my-3">
-                <div
-                    style="font-size: 3rem; font-weight: bold; letter-spacing: 0.5rem; color: #0d6efd; font-family: monospace;">
-                    {{ otp_display }}
-                </div>
-            </div>
-            <hr>
-            <p class="mb-0 small">
-                <i class="bi bi-info-circle"></i>
-                This code will be sent via email once the CloudMail service is restored.
-                Enter the code above to continue.
-            </p>
-        </div>
-        {% else %}
         <div class="alert alert-info mb-4">
             <i class="bi bi-shield-check"></i> For security, we've sent a 6-digit OTP to <strong>{{ email }}</strong>
         </div>
-        {% endif %}
 
         <form method="POST" action="{% url 'login_verify_otp' %}">
             {% csrf_token %}
@@ -72,16 +48,6 @@
                 <i class="bi bi-arrow-left"></i> Back to Home
             </a>
         </div>
-
-        <!-- TEMPORARY: Development Note -->
-        {% if otp_display %}
-        <div class="alert alert-secondary mt-4" style="font-size: 0.875rem;">
-            <strong><i class="bi bi-tools"></i> Development Note:</strong><br>
-            OTP is currently displayed on-screen for testing purposes while the CloudMail email service
-            has rate limit constraints. Once the service is fully operational, codes will be delivered
-            via email for enhanced security.
-        </div>
-        {% endif %}
     </div>
 </div>
 {% endblock %}
