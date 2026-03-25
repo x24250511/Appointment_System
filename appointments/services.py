@@ -73,7 +73,7 @@ class LocationService:
 
 
 class EmailService:  # Classmate 1 Email service integration
-    BASE_URL = settings.EMAIL_SERVICE_URL
+    EMAIL_API_URL = "https://2rsma0i53j.execute-api.us-east-1.amazonaws.com/prod/api/send/"
 
     @staticmethod
     def send_email(to_email, subject, body, from_email='noreply@secureflow.com', from_name='SecureFlow'):
@@ -92,7 +92,7 @@ class EmailService:  # Classmate 1 Email service integration
 
             # Make API request with form-data
             response = requests.post(
-                f'{EmailService.BASE_URL}/api/send/',
+                EmailService.EMAIL_API_URL,
                 data=payload,  # form-data format
                 timeout=30
             )
