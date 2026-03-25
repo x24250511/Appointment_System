@@ -72,22 +72,20 @@ class LocationService:
         return f"https://www.openstreetmap.org/?mlat={latitude}&mlon={longitude}#map={zoom}/{latitude}/{longitude}"
 
 
-class EmailService:
-    """Email notification service using CloudMail API"""
+class EmailService:  # Classmate 1 Email service integration
     BASE_URL = settings.EMAIL_SERVICE_URL
 
     @staticmethod
     def send_email(to_email, subject, body, from_email='noreply@secureflow.com', from_name='SecureFlow'):
-        """Send email via CloudMail API"""
         try:
             print(f"[EMAIL] Attempting to send to: {to_email}")
 
-            # Correct field names: to_email, subject, message, from_email
+            # field names: to_email, subject, message, from_email
             payload = {
                 'to_email': to_email,      # Changed from 'to'
                 'subject': subject,
                 'message': body,            # Changed from 'body' to 'message'
-                'from_email': from_email
+                'from_name': from_name
             }
 
             print(f"[EMAIL] Payload: {payload}")
