@@ -74,28 +74,28 @@ class LocationService:
 
 class EmailService:
     """Email notification service using CloudMail API"""
-    BASE_URL = settings.EMAIL_SERVICE_URL  # Use Django settings
+    BASE_URL = settings.EMAIL_SERVICE_URL
 
     @staticmethod
     def send_email(to_email, subject, body, from_email='noreply@secureflow.com', from_name='SecureFlow'):
         """Send email via CloudMail API"""
         try:
             print(f"[EMAIL] Attempting to send to: {to_email}")
-            print(f"[EMAIL] Using endpoint: {EmailService.BASE_URL}/api/send/")
 
-            # Prepare form data payload
+            # Correct field names: to_email, subject, message, from_email
             payload = {
-                'to': to_email,
+                'to_email': to_email,      # Changed from 'to'
                 'subject': subject,
-                'body': body,
-                'from_email': from_email,
-                'from_name': from_name
+                'message': body,            # Changed from 'body' to 'message'
+                'from_email': from_email
             }
+
+            print(f"[EMAIL] Payload: {payload}")
 
             # Make API request with form-data
             response = requests.post(
                 f'{EmailService.BASE_URL}/api/send/',
-                data=payload,
+                data=payload,  # form-data format
                 timeout=30
             )
 
@@ -103,18 +103,26 @@ class EmailService:
             print(f"[EMAIL] Response: {response.text}")
 
             if response.status_code == 200:
-                print(f"[EMAIL] ✓ Success: Email sent to {to_email}")
-                return {'success': True, 'message': 'Email sent successfully'}
+                try:
+                    response_data = response.json()
+                    if response_data.get('status') == 'success':
+                        print(f"[EMAIL] ✓ Success: Email sent to {to_email}")
+                        return {'success': True, 'message': 'Email sent successfully'}
+                    else:
+                        error_msg = response_data.get(
+                            'message', 'Unknown error')
+                        print(f"[EMAIL] ✗ Failed: {error_msg}")
+                        return {'success': False, 'message': error_msg}
+                except:
+                    print(f"[EMAIL] ✓ Success (non-JSON response)")
+                    return {'success': True, 'message': 'Email sent'}
             else:
-                print(f"[EMAIL] ✗ Failed: {response.text}")
-                return {'success': False, 'message': f'Failed to send email'}
+                print(f"[EMAIL] ✗ Failed with status {response.status_code}")
+                return {'success': False, 'message': f'Status {response.status_code}'}
 
-        except requests.exceptions.Timeout:
-            print(f"[EMAIL] ✗ Timeout")
-            return {'success': False, 'message': 'Email service timeout'}
-        except requests.exceptions.RequestException as e:
-            print(f"[EMAIL] ✗ Error: {str(e)}")
-            return {'success': False, 'message': f'Email error: {str(e)}'}
+        except Exception as e:
+            print(f"[EMAIL] ✗ Exception: {str(e)}")
+            return {'success': False, 'message': str(e)}
 
     @staticmethod
     def send_otp_email(email, otp_code):
