@@ -8,7 +8,7 @@ from .services import OTPService
 
 
 def home_view(request):
-    """Home page"""
+    #Home page
     return render(request, 'home.html')
 
 
@@ -116,7 +116,7 @@ def login_verify_otp_view(request):
 
 
 def register_view(request):
-    """Register page - Simple registration without OTP"""
+    #Register page - Simple registration without OTP
     if request.user.is_authenticated:
         return redirect('dashboard')
 
@@ -182,5 +182,5 @@ def logout_view(request):
 
 @login_required
 def profile_view(request):
-    """User profile page"""
+    #User profile page
     return render(request, 'auth/profile.html')

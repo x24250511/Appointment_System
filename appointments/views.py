@@ -15,7 +15,7 @@ from .services import LocationService, PDFService, EmailService, AppointmentCrea
 from django.http import JsonResponse
 from datetime import datetime, timedelta
 
-# ==================== FRONTEND VIEWS ====================
+#  FRONTEND VIEWS
 
 
 @login_required
@@ -43,7 +43,7 @@ def dashboard_view(request):
 
 @login_required
 def get_available_slots_ajax(request):
-    """AJAX endpoint to get available slots for industry and date"""
+    #AJAX endpoint to get available slots for industry and date
     industry = request.GET.get('industry')
     date = request.GET.get('date')
 
@@ -143,9 +143,6 @@ def appointment_create_view(request):
             performed_by=request.user,
             notes=f'{industry.title()} appointment created - awaiting provider confirmation'
         )
-
-        # Optional: Sync with external appointment service
-        # This won't fail even if external service is down
         try:
             AppointmentCreatorService.sync_appointment(appointment)
         except Exception as e:
@@ -161,7 +158,7 @@ def appointment_create_view(request):
 
 @login_required
 def appointment_detail_view(request, appointment_id):
-    """View single appointment details"""
+    #View single appointment details
     try:
         appointment = Appointment.objects.get(
             id=appointment_id, user=request.user)
@@ -189,7 +186,7 @@ def appointment_detail_view(request, appointment_id):
 
 @login_required
 def appointment_edit_view(request, appointment_id):
-    """Edit appointment page"""
+    #Edit appointment page
     try:
         appointment = Appointment.objects.get(
             id=appointment_id, user=request.user)
@@ -247,11 +244,6 @@ def appointment_delete_view(request, appointment_id):
 
 @login_required
 def appointment_change_status(request, appointment_id):
-    """
-    Change appointment status
-    USERS can only CANCEL their appointments
-    ADMIN must confirm/complete via admin panel
-    """
     try:
         appointment = Appointment.objects.get(
             id=appointment_id, user=request.user)
@@ -286,14 +278,12 @@ def appointment_change_status(request, appointment_id):
         return redirect('appointment_list')
 
 
-# ==================== API VIEWS ====================
+# API VIEWS
 
 @api_view(['GET', 'POST'])
 def appointment_list_create(request):
-    """
-    GET: List all appointments for authenticated user
-    POST: Create new appointment
-    """
+    #GET: List all appointments for authenticated user
+    #POST: Create new appointment
     if request.method == 'GET':
         appointments = Appointment.objects.filter(user=request.user)
         serializer = AppointmentSerializer(appointments, many=True)
@@ -325,11 +315,9 @@ def appointment_list_create(request):
 
 @api_view(['GET', 'PUT', 'DELETE'])
 def appointment_detail(request, pk):
-    """
-    GET: Retrieve appointment details
-    PUT: Update appointment
-    DELETE: Delete appointment
-    """
+    #GET: Retrieve appointment details
+    #PUT: Update appointment
+    #DELETE: Delete appointment
     try:
         appointment = Appointment.objects.get(pk=pk, user=request.user)
     except Appointment.DoesNotExist:
@@ -369,7 +357,7 @@ def appointment_detail(request, pk):
 
 @api_view(['GET'])
 def appointment_history(request, pk):
-    """Get appointment history/audit trail"""
+    #Get appointment history/audit trail
     try:
         appointment = Appointment.objects.get(pk=pk, user=request.user)
         history = AppointmentHistory.objects.filter(
@@ -385,7 +373,7 @@ def appointment_history(request, pk):
 
 @api_view(['POST'])
 def generate_appointment_pdf(request, pk):
-    """Generate PDF for appointment"""
+    #Generate PDF for appointment
     try:
         appointment = Appointment.objects.get(pk=pk, user=request.user)
 
@@ -425,7 +413,7 @@ def generate_appointment_pdf(request, pk):
 
 @api_view(['POST'])
 def send_appointment_email(request, pk):
-    """Send appointment confirmation email"""
+    #Send appointment confirmation email
     try:
         appointment = Appointment.objects.get(pk=pk, user=request.user)
 
@@ -468,7 +456,7 @@ def send_appointment_email(request, pk):
 
 @api_view(['GET'])
 def dashboard_stats(request):
-    """Get dashboard statistics"""
+    #Get dashboard statistics
     appointments = Appointment.objects.filter(user=request.user)
 
     stats = {

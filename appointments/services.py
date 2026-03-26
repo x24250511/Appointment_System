@@ -74,29 +74,23 @@ class LocationService:
 
 class EmailService:  # Classmate 1 Email service integration
     EMAIL_API_URL = "https://2rsma0i53j.execute-api.us-east-1.amazonaws.com/prod/api/send/"
-
     @staticmethod
     def send_email(to_email, subject, body, from_email='noreply@secureflow.com', from_name='SecureFlow'):
         try:
             print(f"[EMAIL] Attempting to send to: {to_email}")
-
             # field names: to_email, subject, message, from_email
             payload = {
-                'to_email': to_email,      # Changed from 'to'
+                'to_email': to_email,      
                 'subject': subject,
-                'message': body,            # Changed from 'body' to 'message'
+                'message': body,           
                 'from_name': from_name
             }
-
             print(f"[EMAIL] Payload: {payload}")
-
-            # Make API request with form-data
             response = requests.post(
                 EmailService.EMAIL_API_URL,
                 data=payload,  # form-data format
                 timeout=30
             )
-
             print(f"[EMAIL] Status: {response.status_code}")
             print(f"[EMAIL] Response: {response.text}")
 
