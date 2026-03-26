@@ -114,7 +114,6 @@ jobs:
         with:
           aws_access_key: ${{ secrets.AWS_ACCESS_KEY_ID }}
           aws_secret_key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
-          aws_session_token: ${{ secrets.AWS_SESSION_TOKEN }}
           application_name: appointment_system
           environment_name: secureflow-env
           version_label: v-${{ github.run_number }}
@@ -134,7 +133,7 @@ jobs:
 
       - uses: zaproxy/action-baseline@v0.15.0
         with:
-          target: 'http://secureflow-env.eba-2gp2b6pj.us-east-1.elasticbeanstalk.com/'
+          target: 'http://secureflow-env.eba-vjms2upr.us-east-1.elasticbeanstalk.com/'
           allow_issue_writing: false
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
