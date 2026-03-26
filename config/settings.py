@@ -81,7 +81,7 @@ WSGI_APPLICATION = 'config.wsgi.application'
 # Database
 # https://docs.djangoproject.com/en/1.11/ref/settings/#databases
 
-if 'RDS_DB_NAME' in os.environ:
+if 'DB_HOST' in os.environ:  # ✅ Check for DB_HOST instead
     # Production - RDS PostgreSQL
     DATABASES = {
         'default': {
