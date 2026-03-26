@@ -1,124 +1,140 @@
-name: SecureFlow CI/CD Pipeline
+name: SecureFlow - DevSecOps Pipeline
 
 on:
   push:
-    branches: [ main, develop ]
-  pull_request:
-    branches: [ main ]
-
-env:
-  AWS_REGION: us-east-1
-  EB_APPLICATION_NAME: appointment_system
-  EB_ENVIRONMENT_NAME: secureflow-env
+    branches:
+      - main
 
 jobs:
-  # Job 1: Code Quality & Security Analysis
-  code-quality:
-    name: Code Quality & SAST
+  # 1) LINT JOB (PYLINT)
+  lint:
     runs-on: ubuntu-latest
-    
+    name: Lint Code (pylint)
     steps:
-    - name: Checkout Code
-      uses: actions/checkout@v4
-      with:
-        fetch-depth: 0  # Full history for SonarQube
-    
-    - name: Set up Python
-      uses: actions/setup-python@v5
-      with:
-        python-version: '3.11'
-    
-    - name: Install Dependencies
-      run: |
-        python -m pip install --upgrade pip
-        pip install -r requirements.txt
-        pip install pylint bandit safety
-    
-    - name: Run Pylint
-      run: |
-        pylint **/*.py --exit-zero --output-format=json > pylint-report.json || true
-      continue-on-error: true
-    
-    - name: Run Bandit (Security Linter)
-      run: |
-        bandit -r . -f json -o bandit-report.json || true
-      continue-on-error: true
-    
-    - name: Check Dependencies for Vulnerabilities
-      run: |
-        safety check --json > safety-report.json || true
-      continue-on-error: true
-    
-    - name: Upload Security Reports
-      uses: actions/upload-artifact@v4
-      with:
-        name: security-reports
-        path: |
-          pylint-report.json
-          bandit-report.json
-          safety-report.json
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r requirements.txt
+          pip install pylint pylint-django
+      - name: Run pylint
+        run: pylint . --exit-zero 
 
-  # Job 2: Build & Deploy to AWS
+  # 2) SECURITY JOB (BANDIT + SAFETY)
+  security:
+    runs-on: ubuntu-latest
+    needs: lint
+    name: Security Scan (Bandit + Safety)
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+      - name: Install security tools
+        run: pip install bandit safety
+      - name: Bandit (SAST)
+        run: bandit -r . -ll --exit-zero
+      - name: Safety (dependency vulnerabilities)
+        run: safety check || true
+
+  # 3) TEST JOB (PYTEST + COVERAGE)
+  tests:
+    runs-on: ubuntu-latest
+    needs: security
+    name: Pytest + Coverage
+    env:
+      DJANGO_SETTINGS_MODULE: appointment_system.settings
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r requirements.txt
+          pip install pytest pytest-cov pytest-django
+      - name: Run pytest with coverage
+        run: pytest --cov=. --cov-report=xml || [ $? -eq 5 ]
+      - uses: actions/upload-artifact@v4
+        with:
+          name: coverage
+          path: coverage.xml
+          if-no-files-found: warn
+
+  # 4) SONARCLOUD JOB 
+  sonar:
+    runs-on: ubuntu-latest
+    needs: tests
+    name: SonarCloud Scan
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - name: SonarCloud Scan
+        uses: SonarSource/sonarcloud-github-action@v2
+        env:
+          SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
+        with:
+          args: >
+            -Dsonar.projectKey=x24250511_Appointment_System
+            -Dsonar.organization=x24250511
+            -Dsonar.sources=.
+            -Dsonar.exclusions=**/migrations/**,**/venv/**,**/static/**,application.zip
+            -Dsonar.python.version=3.11
+            -Dsonar.python.coverage.reportPaths=coverage.xml
+
+  # 5) DEPLOY TO AWS ELASTIC BEANSTALK
   deploy:
-    name: Deploy to AWS Elastic Beanstalk
     runs-on: ubuntu-latest
-    needs: code-quality
-    if: github.ref == 'refs/heads/main' && github.event_name == 'push'
-    
+    needs: sonar  
+    name: Deploy to Elastic Beanstalk
     steps:
-    - name: Checkout Code
-      uses: actions/checkout@v4
-    
-    - name: Set up Python
-      uses: actions/setup-python@v5
-      with:
-        python-version: '3.11'
-    
-    - name: Install EB CLI
-      run: |
-        pip install awsebcli
-    
-    - name: Configure AWS Credentials
-      uses: aws-actions/configure-aws-credentials@v4
-      with:
-        aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
-        aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
-        aws-session-token: ${{ secrets.AWS_SESSION_TOKEN }}
-        aws-region: ${{ env.AWS_REGION }}
-    
-    - name: Deploy to Elastic Beanstalk
-      run: |
-        eb init -p python-3.11 ${{ env.EB_APPLICATION_NAME }} --region ${{ env.AWS_REGION }}
-        eb use ${{ env.EB_ENVIRONMENT_NAME }}
-        eb deploy --staged
-    
-    - name: Verify Deployment
-      run: |
-        eb status ${{ env.EB_ENVIRONMENT_NAME }}
+      - name: Checkout code
+        uses: actions/checkout@v4
 
-  # Job 3: DAST with OWASP ZAP
-  security-scan:
-    name: OWASP ZAP Security Scan
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r requirements.txt
+
+      - name: Zip application
+        run: zip -r application.zip . -x "*.git*" "*.github*" "application.zip" "venv/*" "*__pycache__*" "*.pyc"
+
+      - name: EB deploy
+        uses: einaregilsson/beanstalk-deploy@v22
+        with:
+          aws_access_key: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws_secret_key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws_session_token: ${{ secrets.AWS_SESSION_TOKEN }}
+          application_name: SecureFlow
+          environment_name: secureflow-env
+          version_label: v-${{ github.run_number }}
+          region: us-east-1
+          deployment_package: application.zip
+
+  # 6) OWASP ZAP SECURITY SCAN
+  zap_scan:
     runs-on: ubuntu-latest
     needs: deploy
-    if: github.ref == 'refs/heads/main' && github.event_name == 'push'
-    
+    name: OWASP ZAP Baseline Scan
+    permissions:
+      contents: read
+      security-events: write
     steps:
-    - name: Checkout Code
-      uses: actions/checkout@v4
-    
-    - name: ZAP Baseline Scan
-      uses: zaproxy/action-baseline@v0.12.0
-      with:
-        target: 'http://secureflow-env.eba-2gp2b6pj.us-east-1.elasticbeanstalk.com'
-        rules_file_name: '.zap/rules.tsv'
-        cmd_options: '-a -j -l WARN'
-    
-    - name: Upload ZAP Report
-      uses: actions/upload-artifact@v4
-      if: always()
-      with:
-        name: zap-report
-        path: |
-          report_html.html
-          report_json.json
+      - uses: actions/checkout@v4
+
+      - uses: zaproxy/action-baseline@v0.15.0
+        with:
+          target: 'http://secureflow-env.eba-2gp2b6pj.us-east-1.elasticbeanstalk.com/'
+          allow_issue_writing: false
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

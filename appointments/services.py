@@ -172,12 +172,29 @@ SecureFlow Team
 
 class PDFService:
     """PDF generation service"""
-    BASE_URL = settings.PDF_SERVICE_URL
+    # PDF API URL from classmate
+    PDF_API_URL = "https://rz27c392l4.execute-api.us-east-1.amazonaws.com/html/pdf"
 
     @staticmethod
     def generate_appointment_pdf(appointment):
         """Generate PDF for appointment confirmation"""
         try:
+            print(f"\n{'='*60}")
+            print(f"[PDF] Generating PDF for appointment {appointment.id}")
+
+            # Convert date and time safely
+            if isinstance(appointment.appointment_date, str):
+                date_display = appointment.appointment_date
+            else:
+                date_display = appointment.appointment_date.strftime(
+                    '%B %d, %Y')
+
+            if isinstance(appointment.appointment_time, str):
+                time_display = appointment.appointment_time
+            else:
+                time_display = appointment.appointment_time.strftime(
+                    '%I:%M %p')
+
             # Create HTML content
             html_content = f"""
             <!DOCTYPE html>
@@ -207,8 +224,8 @@ class PDFService:
                 
                 <div class="info">
                     <p><span class="label">Industry:</span> <span class="value">{appointment.get_industry_display()}</span></p>
-                    <p><span class="label">Date:</span> <span class="value">{appointment.appointment_date.strftime('%B %d, %Y')}</span></p>
-                    <p><span class="label">Time:</span> <span class="value">{appointment.appointment_time.strftime('%I:%M %p')}</span></p>
+                    <p><span class="label">Date:</span> <span class="value">{date_display}</span></p>
+                    <p><span class="label">Time:</span> <span class="value">{time_display}</span></p>
                     <p><span class="label">Location:</span> <span class="value">{appointment.location}</span></p>
                 </div>
                 
@@ -219,7 +236,7 @@ class PDFService:
                 
                 <div class="info">
                     <p><span class="label">Status:</span> <span class="value">{appointment.get_status_display()}</span></p>
-                    <p><span class="label">Created:</span> <span class="value">{appointment.created_at.strftime('%B %d, %Y %I:%M %p')}</span></p>
+                    <p><span class="label">Created:</span> <span class="value">{appointment.created_at.strftime('%B %d, %Y %I:%M %p') if hasattr(appointment.created_at, 'strftime') else str(appointment.created_at)}</span></p>
                 </div>
                 
                 <div class="footer">
@@ -230,30 +247,49 @@ class PDFService:
             </html>
             """
 
-            # Make API request
+            print(f"[PDF] Sending HTML to PDF API")
+            print(f"[PDF] URL: {PDFService.PDF_API_URL}")
+
+            # Make API request with JSON payload
             response = requests.post(
-                PDFService.BASE_URL,
-                headers={'Content-Type': 'text/html'},
-                data=html_content.encode('utf-8'),
+                PDFService.PDF_API_URL,
+                headers={'Content-Type': 'application/json'},
+                json={'html': html_content},
                 timeout=30
             )
 
+            print(f"[PDF] Response Status: {response.status_code}")
+
             if response.status_code == 200:
+                print(f"[PDF] ✓ PDF generated successfully")
+                print(f"{'='*60}\n")
                 return {
                     'success': True,
                     'pdf_data': response.content,
                     'content_type': 'application/pdf'
                 }
             else:
+                print(f"[PDF] ✗ Failed with status {response.status_code}")
+                print(f"[PDF] Response: {response.text}")
+                print(f"{'='*60}\n")
                 return {
                     'success': False,
                     'error': f'PDF service returned {response.status_code}'
                 }
 
         except requests.exceptions.RequestException as e:
+            print(f"[PDF] ✗ Request exception: {str(e)}")
+            print(f"{'='*60}\n")
             return {
                 'success': False,
                 'error': f'PDF generation failed: {str(e)}'
+            }
+        except Exception as e:
+            print(f"[PDF] ✗ Unexpected error: {str(e)}")
+            print(f"{'='*60}\n")
+            return {
+                'success': False,
+                'error': f'Unexpected error: {str(e)}'
             }
 
 
@@ -452,15 +488,19 @@ class AppointmentCreatorService:
                 return False
 
             # Generate slots for the date (if not already generated)
+            # Convert date to string if it's a datetime object
+            date_str = appointment.appointment_date if isinstance(
+                appointment.appointment_date, str) else appointment.appointment_date.strftime('%Y-%m-%d')
+
             AppointmentCreatorService.generate_slots_for_date(
                 provider_id,
-                appointment.appointment_date.strftime('%Y-%m-%d')
+                date_str
             )
 
             # Get available slots
             slots = AppointmentCreatorService.get_available_slots(
                 provider_id,
-                appointment.appointment_date.strftime('%Y-%m-%d')
+                date_str
             )
 
             if not slots:
@@ -469,8 +509,9 @@ class AppointmentCreatorService:
                 return False
 
             # Find matching slot for the appointment time
-            appointment_time_str = appointment.appointment_time.strftime(
-                '%H:%M')
+            # Convert time to string if it's a time object
+            appointment_time_str = appointment.appointment_time if isinstance(
+                appointment.appointment_time, str) else appointment.appointment_time.strftime('%H:%M')
             matching_slot = None
 
             for slot in slots:
