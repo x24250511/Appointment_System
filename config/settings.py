@@ -176,7 +176,7 @@ AWS_SQS_QUEUE_URL = config('AWS_SQS_QUEUE_URL', default='')
 
 # External Service URLs
 OTP_SERVICE_URL = config(
-    'OTP_SERVICE_URL', default='http://otpapi-env.eba-pjkmm4m3.us-east-1.elasticbeanstalk.com')
+    'OTP_SERVICE_URL', default='https://plx61avh5f.execute-api.us-east-1.amazonaws.com/prod')
 EMAIL_SERVICE_URL = config(
     'EMAIL_SERVICE_URL', default='https://2rsma0i53j.execute-api.us-east-1.amazonaws.com/prod/api/send/')
 PDF_SERVICE_URL = config(
