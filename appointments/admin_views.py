@@ -50,8 +50,7 @@ def admin_dashboard_view(request):
 @login_required(login_url="/auth/login/")
 @user_passes_test(is_staff)
 def admin_appointments_view(request):
-    """Admin view to manage all appointments"""
-    # Get filter parameters
+    # filter parameters
     status_filter = request.GET.get('status', 'all')
     industry_filter = request.GET.get('industry', 'all')
     search_query = request.GET.get('search', '')
@@ -102,7 +101,6 @@ def admin_appointment_detail_view(request, appointment_id):
 @login_required(login_url="/auth/login/")
 @user_passes_test(is_staff)
 def admin_confirm_appointment(request, appointment_id):
-    """Confirm an appointment and send email"""
     appointment = get_object_or_404(Appointment, id=appointment_id)
 
     if appointment.status != 'confirmed':
@@ -116,6 +114,13 @@ def admin_confirm_appointment(request, appointment_id):
             performed_by=request.user,
             notes='Appointment confirmed by admin'
         )
+
+        # Generate PDF
+        try:
+            from .services import PDFService
+            PDFService.generate_appointment_pdf(appointment)
+        except Exception as e:
+            print(f"PDF generation failed: {str(e)}")
 
         # Send confirmation email
         try:
@@ -135,7 +140,6 @@ Description:
 {appointment.description}
 
 Please arrive 10 minutes early for your appointment.
-
 If you need to reschedule or cancel, please contact us as soon as possible.
 
 Best regards,
