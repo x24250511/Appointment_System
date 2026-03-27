@@ -81,24 +81,29 @@ WSGI_APPLICATION = 'config.wsgi.application'
 # Database
 # https://docs.djangoproject.com/en/1.11/ref/settings/#databases
 
-if 'DB_HOST' in os.environ:  # ✅ Check for DB_HOST instead
+# Database Configuration
+if 'RDS_HOSTNAME' in os.environ:
     # Production - RDS PostgreSQL
     DATABASES = {
         'default': {
             'ENGINE': 'django.db.backends.postgresql',
-            'NAME': os.environ.get('DB_NAME', 'secureflow_db'),
-            'USER': os.environ.get('DB_USER', 'secureflow_admin'),
-            'PASSWORD': os.environ.get('DB_PASSWORD', ''),
-            'HOST': os.environ.get('DB_HOST', 'localhost'),
-            'PORT': os.environ.get('DB_PORT', '5432'),
+            'NAME': os.environ.get('RDS_DB_NAME', 'secureflow_db'),
+            'USER': os.environ.get('RDS_USERNAME', 'secureflow_admin'),
+            'PASSWORD': os.environ.get('RDS_PASSWORD', 'SecureFlow2024!'),
+            'HOST': os.environ.get('RDS_HOSTNAME', 'secureflow-db.cmbq2wmicc2v.us-east-1.rds.amazonaws.com'),
+            'PORT': os.environ.get('RDS_PORT', '5432'),
         }
     }
 else:
-    # Local - SQLite
+    # Fallback - Hardcoded PostgreSQL for AWS
     DATABASES = {
         'default': {
-            'ENGINE': 'django.db.backends.sqlite3',
-            'NAME': BASE_DIR / 'db.sqlite3',
+            'ENGINE': 'django.db.backends.postgresql',
+            'NAME': 'secureflow_db',
+            'USER': 'secureflow_admin',
+            'PASSWORD': 'SecureFlow2024!',
+            'HOST': 'secureflow-db.cmbq2wmicc2v.us-east-1.rds.amazonaws.com',
+            'PORT': '5432',
         }
     }
 
