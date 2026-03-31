@@ -182,7 +182,7 @@ EMAIL_SERVICE_URL = config(
 PDF_SERVICE_URL = config(
     'PDF_SERVICE_URL', default='https://rz27c392l4.execute-api.us-east-1.amazonaws.com/html/pdf')
 APPOINTMENT_SERVICE_URL = config(
-    'APPOINTMENT_SERVICE_URL', default='http://api-env.eba-45cakfm9.us-east-1.elasticbeanstalk.com')
+    'APPOINTMENT_SERVICE_URL', default='https://2o7jj4hez6.execute-api.us-east-1.amazonaws.com')
 APPOINTMENT_API_KEY = config('APPOINTMENT_API_KEY', default='')
 
 HEALTHCARE_PROVIDER_ID = config('HEALTHCARE_PROVIDER_ID', default='', cast=str)
