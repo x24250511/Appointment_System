@@ -183,12 +183,14 @@ PDF_SERVICE_URL = config(
     'PDF_SERVICE_URL', default='https://rz27c392l4.execute-api.us-east-1.amazonaws.com/html/pdf')
 APPOINTMENT_SERVICE_URL = config(
     'APPOINTMENT_SERVICE_URL', default='https://2o7jj4hez6.execute-api.us-east-1.amazonaws.com')
-APPOINTMENT_API_KEY = config('APPOINTMENT_API_KEY', default='')
+APPOINTMENT_API_KEY = config(
+    'APPOINTMENT_API_KEY', default='9e0689b9-4b5b-4a37-9e95-ada12e73c9d9')
 
-HEALTHCARE_PROVIDER_ID = config('HEALTHCARE_PROVIDER_ID', default='', cast=str)
-LEGAL_PROVIDER_ID = config('LEGAL_PROVIDER_ID', default='', cast=str)
+HEALTHCARE_PROVIDER_ID = config(
+    'HEALTHCARE_PROVIDER_ID', default='5', cast=str)
+LEGAL_PROVIDER_ID = config('LEGAL_PROVIDER_ID', default='6', cast=str)
 CONSULTANCY_PROVIDER_ID = config(
-    'CONSULTANCY_PROVIDER_ID', default='', cast=str)
+    'CONSULTANCY_PROVIDER_ID', default='7', cast=str)
 
 LOGIN_URL = '/auth/login/'
 LOGIN_REDIRECT_URL = '/appointments/dashboard/'
