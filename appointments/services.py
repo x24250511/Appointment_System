@@ -73,16 +73,17 @@ class LocationService:
 
 
 class EmailService:  # Classmate 1 Email service integration
-    EMAIL_API_URL = "https://2rsma0i53j.execute-api.us-east-1.amazonaws.com/prod/api/send/"
+    EMAIL_API_URL = "http://Email-API-env.eba-v7a7r7mg.eu-west-1.elasticbeanstalk.com/api/send/"
+
     @staticmethod
     def send_email(to_email, subject, body, from_email='noreply@secureflow.com', from_name='SecureFlow'):
         try:
             print(f"[EMAIL] Attempting to send to: {to_email}")
             # field names: to_email, subject, message, from_email
             payload = {
-                'to_email': to_email,      
+                'to_email': to_email,
                 'subject': subject,
-                'message': body,           
+                'message': body,
                 'from_name': from_name
             }
             print(f"[EMAIL] Payload: {payload}")
@@ -103,17 +104,17 @@ class EmailService:  # Classmate 1 Email service integration
                     else:
                         error_msg = response_data.get(
                             'message', 'Unknown error')
-                        print(f"[EMAIL] ✗ Failed: {error_msg}")
+                        print(f"[EMAIL] Failed: {error_msg}")
                         return {'success': False, 'message': error_msg}
                 except:
-                    print(f"[EMAIL] ✓ Success (non-JSON response)")
+                    print(f"[EMAIL] Success (non-JSON response)")
                     return {'success': True, 'message': 'Email sent'}
             else:
-                print(f"[EMAIL] ✗ Failed with status {response.status_code}")
+                print(f"[EMAIL]  Failed with status {response.status_code}")
                 return {'success': False, 'message': f'Status {response.status_code}'}
 
         except Exception as e:
-            print(f"[EMAIL] ✗ Exception: {str(e)}")
+            print(f"[EMAIL] Exception: {str(e)}")
             return {'success': False, 'message': str(e)}
 
     @staticmethod
@@ -165,7 +166,6 @@ SecureFlow Team
 
 
 class PDFService:
-    """PDF generation service"""
     # PDF API URL from classmate
     PDF_API_URL = "https://rz27c392l4.execute-api.us-east-1.amazonaws.com/html/pdf"
 
@@ -255,7 +255,7 @@ class PDFService:
             print(f"[PDF] Response Status: {response.status_code}")
 
             if response.status_code == 200:
-                print(f"[PDF] ✓ PDF generated successfully")
+                print(f"[PDF] PDF generated successfully")
                 print(f"{'='*60}\n")
                 return {
                     'success': True,
@@ -263,7 +263,7 @@ class PDFService:
                     'content_type': 'application/pdf'
                 }
             else:
-                print(f"[PDF] ✗ Failed with status {response.status_code}")
+                print(f"[PDF] Failed with status {response.status_code}")
                 print(f"[PDF] Response: {response.text}")
                 print(f"{'='*60}\n")
                 return {
@@ -272,7 +272,7 @@ class PDFService:
                 }
 
         except requests.exceptions.RequestException as e:
-            print(f"[PDF] ✗ Request exception: {str(e)}")
+            print(f"[PDF] Request exception: {str(e)}")
             print(f"{'='*60}\n")
             return {
                 'success': False,
@@ -316,16 +316,16 @@ class AppointmentCreatorService:
                 data = response.json()
                 provider_id = data.get('provider_id')
                 print(
-                    f"[APPOINTMENT API] ✓ Provider created with ID: {provider_id}")
+                    f"[APPOINTMENT API]  Provider created with ID: {provider_id}")
                 print(f"{'='*60}\n")
                 return provider_id
             else:
-                print(f"[APPOINTMENT API] ✗ Failed: {response.text}")
+                print(f"[APPOINTMENT API]  Failed: {response.text}")
                 print(f"{'='*60}\n")
                 return None
 
         except Exception as e:
-            print(f"[APPOINTMENT API ERROR] ✗ {str(e)}")
+            print(f"[APPOINTMENT API ERROR]  {str(e)}")
             print(f"{'='*60}\n")
             return None
 
@@ -370,7 +370,7 @@ class AppointmentCreatorService:
             if response.status_code in [200, 201]:
                 data = response.json()
                 print(
-                    f"[APPOINTMENT API] ✓ {data.get('message', 'Slots generated')}")
+                    f"[APPOINTMENT API] {data.get('message', 'Slots generated')}")
                 print(f"{'='*60}\n")
                 return True
             else:
@@ -424,7 +424,6 @@ class AppointmentCreatorService:
 
     @staticmethod
     def book_slot(slot_id, customer_name, customer_email):
-        """Book a specific slot"""
         try:
             print(f"\n{'='*60}")
             print(f"[APPOINTMENT API] Booking slot {slot_id}")
@@ -447,16 +446,16 @@ class AppointmentCreatorService:
 
             if response.status_code in [200, 201]:
                 data = response.json()
-                print(f"[APPOINTMENT API] ✓ Slot booked successfully")
+                print(f"[APPOINTMENT API]  Slot booked successfully")
                 print(f"{'='*60}\n")
                 return True, data
             else:
-                print(f"[APPOINTMENT API] ✗ Failed: {response.text}")
+                print(f"[APPOINTMENT API]  Failed: {response.text}")
                 print(f"{'='*60}\n")
                 return False, None
 
         except Exception as e:
-            print(f"[APPOINTMENT API ERROR] ✗ {str(e)}")
+            print(f"[APPOINTMENT API ERROR]  {str(e)}")
             print(f"{'='*60}\n")
             return False, None
 
@@ -524,7 +523,7 @@ class AppointmentCreatorService:
 
                 if success:
                     print(
-                        f"[APPOINTMENT SYNC] ✓ Appointment synced and slot booked")
+                        f"[APPOINTMENT SYNC]  Appointment synced and slot booked")
                     print(f"{'='*60}\n")
                     return True
 
