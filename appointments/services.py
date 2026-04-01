@@ -218,91 +218,40 @@ class PDFService:
 <html>
 <head>
 <meta charset="UTF-8">
-<style>
-    body {{{{ font-family: Arial, sans-serif; margin: 40px; background-color: #f5f5f5; }}}}
-    .container {{{{ max-width: 800px; margin: 0 auto; background: white; padding: 40px; box-shadow: 0 2px 4px rgba(0,0,0,0.1); }}}}
-    .header {{{{ text-align: center; color: #1e3a8a; margin-bottom: 30px; border-bottom: 3px solid #1e3a8a; padding-bottom: 20px; }}}}
-    .header h1 {{{{ margin: 0; font-size: 28px; }}}}
-    .section {{{{ margin: 25px 0; padding: 15px; background: #f9fafb; border-left: 4px solid #1e3a8a; }}}}
-    .section-title {{{{ font-size: 18px; color: #1e3a8a; margin-bottom: 15px; font-weight: bold; }}}}
-    .info-row {{{{ margin: 10px 0; display: flex; }}}}
-    .label {{{{ font-weight: bold; color: #666; min-width: 150px; }}}}
-    .value {{{{ color: #333; }}}}
-    .footer {{{{ margin-top: 40px; text-align: center; color: #666; font-size: 12px; padding-top: 20px; border-top: 2px solid #e5e7eb; }}}}
-    .badge {{{{ display: inline-block; padding: 5px 15px; background: #10b981; color: white; border-radius: 20px; font-size: 12px; }}}}
-</style>
+<title>Appointment Confirmation</title>
 </head>
-<body>
-<div class="container">
-    <div class="header">
-        <h1>🏥 SecureFlow Appointment Confirmation</h1>
-    </div>
-    
-    <div class="section">
-        <div class="section-title">Appointment Information</div>
-        <div class="info-row">
-            <span class="label">Appointment ID:</span>
-            <span class="value">{appointment.id}</span>
-        </div>
-        <div class="info-row">
-            <span class="label">Title:</span>
-            <span class="value">{appointment.title}</span>
-        </div>
-        <div class="info-row">
-            <span class="label">Patient/Client:</span>
-            <span class="value">{appointment.user.username}</span>
-        </div>
-        <div class="info-row">
-            <span class="label">Email:</span>
-            <span class="value">{appointment.user.email}</span>
-        </div>
-    </div>
-    
-    <div class="section">
-        <div class="section-title">Schedule Details</div>
-        <div class="info-row">
-            <span class="label">Industry:</span>
-            <span class="value"><span class="badge">{appointment.get_industry_display()}</span></span>
-        </div>
-        <div class="info-row">
-            <span class="label">Date:</span>
-            <span class="value">{date_display}</span>
-        </div>
-        <div class="info-row">
-            <span class="label">Time:</span>
-            <span class="value">{time_display}</span>
-        </div>
-        <div class="info-row">
-            <span class="label">Location:</span>
-            <span class="value">{appointment.location}</span>
-        </div>
-    </div>
-    
-    <div class="section">
-        <div class="section-title">Additional Information</div>
-        <div class="info-row">
-            <span class="label">Description:</span>
-        </div>
-        <div style="margin-top: 10px; padding: 10px; background: white; border-radius: 5px;">
-            {appointment.description}
-        </div>
-        <div class="info-row" style="margin-top: 15px;">
-            <span class="label">Status:</span>
-            <span class="value"><span class="badge">{appointment.get_status_display()}</span></span>
-        </div>
-        <div class="info-row">
-            <span class="label">Created:</span>
-            <span class="value">{appointment.created_at.strftime('%B %d, %Y %I:%M %p')}</span>
-        </div>
-    </div>
-    
-    <div class="footer">
-        <p><strong>This is an automated confirmation from SecureFlow</strong></p>
-        <p>Please arrive 10 minutes early for your appointment</p>
-        <p style="margin-top: 15px; font-size: 10px; color: #999;">
-            If you need to reschedule or cancel, please contact us as soon as possible.
-        </p>
-    </div>
+<body style="font-family: Arial, sans-serif; margin: 40px;">
+<div style="text-align: center; color: #1e3a8a; margin-bottom: 30px;">
+<h1>SecureFlow Appointment Confirmation</h1>
+</div>
+
+<div style="margin: 20px 0;">
+<p><strong>Appointment ID:</strong> {appointment.id}</p>
+<p><strong>Title:</strong> {appointment.title}</p>
+<p><strong>Patient/Client:</strong> {appointment.user.username}</p>
+<p><strong>Email:</strong> {appointment.user.email}</p>
+</div>
+
+<div style="margin: 20px 0;">
+<p><strong>Industry:</strong> {appointment.get_industry_display()}</p>
+<p><strong>Date:</strong> {date_display}</p>
+<p><strong>Time:</strong> {time_display}</p>
+<p><strong>Location:</strong> {appointment.location}</p>
+</div>
+
+<div style="margin: 20px 0;">
+<p><strong>Description:</strong></p>
+<p>{appointment.description}</p>
+</div>
+
+<div style="margin: 20px 0;">
+<p><strong>Status:</strong> {appointment.get_status_display()}</p>
+<p><strong>Created:</strong> {appointment.created_at.strftime('%B %d, %Y %I:%M %p')}</p>
+</div>
+
+<div style="margin-top: 40px; text-align: center; color: #666; font-size: 12px;">
+<p>This is an automated confirmation from SecureFlow</p>
+<p>Please arrive 10 minutes early for your appointment</p>
 </div>
 </body>
 </html>"""
