@@ -2,12 +2,13 @@ from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib.auth.decorators import login_required, user_passes_test
 from django.contrib import messages
 from .models import Appointment, AppointmentHistory
-from .services import EmailService
+from .services import EmailService, PDFService
 from django.db.models import Q, Count
 from datetime import datetime, timedelta
 
 
 def is_staff(user):
+    """Check if user is staff/admin"""
     return user.is_staff or user.is_superuser
 
 
@@ -49,7 +50,8 @@ def admin_dashboard_view(request):
 @login_required(login_url="/auth/login/")
 @user_passes_test(is_staff)
 def admin_appointments_view(request):
-    # filter parameters
+    """Admin view to manage all appointments"""
+    # Get filter parameters
     status_filter = request.GET.get('status', 'all')
     industry_filter = request.GET.get('industry', 'all')
     search_query = request.GET.get('search', '')
@@ -100,6 +102,7 @@ def admin_appointment_detail_view(request, appointment_id):
 @login_required(login_url="/auth/login/")
 @user_passes_test(is_staff)
 def admin_confirm_appointment(request, appointment_id):
+    """Confirm an appointment and send email with PDF attachment"""
     appointment = get_object_or_404(Appointment, id=appointment_id)
 
     if appointment.status != 'confirmed':
@@ -117,12 +120,13 @@ def admin_confirm_appointment(request, appointment_id):
         # Generate PDF
         pdf_data = None
         try:
-            from .services import PDFService
             pdf_result = PDFService.generate_appointment_pdf(appointment)
             if pdf_result.get('success'):
                 appointment.pdf_generated = True
                 pdf_data = pdf_result.get('pdf_data')
                 appointment.save()
+                print(
+                    f"[PDF] Successfully generated for appointment {appointment.id}")
         except Exception as e:
             print(f"PDF generation failed: {str(e)}")
 
@@ -153,7 +157,7 @@ SecureFlow Team
 
             # Send with or without PDF attachment
             if pdf_data:
-                EmailService.send_email_with_attachment(
+                result = EmailService.send_email_with_attachment(
                     appointment.user.email,
                     subject,
                     body,
@@ -162,7 +166,7 @@ SecureFlow Team
                     from_name="SecureFlow Appointments"
                 )
             else:
-                EmailService.send_email(
+                result = EmailService.send_email(
                     appointment.user.email,
                     subject,
                     body,
@@ -233,7 +237,6 @@ Title: {appointment.title}
 Date: {appointment.appointment_date.strftime('%B %d, %Y')}
 Time: {appointment.appointment_time.strftime('%I:%M %p')}
 Location: {appointment.location}
-
 
 If you would like to reschedule, please create a new appointment through our system.
 
