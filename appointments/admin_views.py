@@ -8,7 +8,6 @@ from datetime import datetime, timedelta
 
 
 def is_staff(user):
-    """Check if user is staff/admin"""
     return user.is_staff or user.is_superuser
 
 
@@ -116,13 +115,18 @@ def admin_confirm_appointment(request, appointment_id):
         )
 
         # Generate PDF
+        pdf_data = None
         try:
             from .services import PDFService
-            PDFService.generate_appointment_pdf(appointment)
+            pdf_result = PDFService.generate_appointment_pdf(appointment)
+            if pdf_result.get('success'):
+                appointment.pdf_generated = True
+                pdf_data = pdf_result.get('pdf_data')
+                appointment.save()
         except Exception as e:
             print(f"PDF generation failed: {str(e)}")
 
-        # Send confirmation email
+        # Send confirmation email with PDF attachment
         try:
             subject = f" Appointment Confirmed: {appointment.title}"
             body = f"""Dear {appointment.user.username},
@@ -140,13 +144,31 @@ Description:
 {appointment.description}
 
 Please arrive 10 minutes early for your appointment.
+
 If you need to reschedule or cancel, please contact us as soon as possible.
 
 Best regards,
 SecureFlow Team
 """
-            EmailService.send_email(
-                appointment.user.email, subject, body, from_name="SecureFlow Appointments")
+
+            # Send with or without PDF attachment
+            if pdf_data:
+                EmailService.send_email_with_attachment(
+                    appointment.user.email,
+                    subject,
+                    body,
+                    pdf_data,
+                    f'appointment_{appointment.id}.pdf',
+                    from_name="SecureFlow Appointments"
+                )
+            else:
+                EmailService.send_email(
+                    appointment.user.email,
+                    subject,
+                    body,
+                    from_name="SecureFlow Appointments"
+                )
+
             appointment.email_sent = True
             appointment.save()
             messages.success(
