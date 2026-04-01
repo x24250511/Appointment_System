@@ -29,8 +29,8 @@ class AppointmentAdmin(admin.ModelAdmin):
 
     actions = ['mark_confirmed', 'mark_completed', 'mark_cancelled']
 
+    # confirm selected appointments, generate PDF, and send email
     def mark_confirmed(self, request, queryset):
-        """Confirm selected appointments and send email with PDF attachment"""
         count = 0
         for appointment in queryset:
             if appointment.status != 'confirmed':
@@ -115,8 +115,8 @@ SecureFlow Team
             request, f'{count} appointment(s) confirmed and emails sent.')
     mark_confirmed.short_description = "✓ Confirm selected appointments"
 
+    # Mark appointments as completed and create history records
     def mark_completed(self, request, queryset):
-        """Mark selected appointments as completed"""
         updated = queryset.update(status='completed')
 
         # Create history records

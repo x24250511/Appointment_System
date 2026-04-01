@@ -4,18 +4,15 @@ from django.contrib import messages
 from .models import Appointment, AppointmentHistory
 from .services import EmailService, PDFService
 from django.db.models import Q, Count
-from datetime import datetime, timedelta
 
 
 def is_staff(user):
-    """Check if user is staff/admin"""
     return user.is_staff or user.is_superuser
 
 
 @login_required(login_url="/auth/login/")
 @user_passes_test(is_staff)
 def admin_dashboard_view(request):
-    """Admin dashboard showing appointment statistics"""
     # Get statistics
     total_appointments = Appointment.objects.count()
     pending_appointments = Appointment.objects.filter(status='pending').count()
@@ -50,7 +47,6 @@ def admin_dashboard_view(request):
 @login_required(login_url="/auth/login/")
 @user_passes_test(is_staff)
 def admin_appointments_view(request):
-    """Admin view to manage all appointments"""
     # Get filter parameters
     status_filter = request.GET.get('status', 'all')
     industry_filter = request.GET.get('industry', 'all')
@@ -102,7 +98,6 @@ def admin_appointment_detail_view(request, appointment_id):
 @login_required(login_url="/auth/login/")
 @user_passes_test(is_staff)
 def admin_confirm_appointment(request, appointment_id):
-    """Confirm an appointment and send email with PDF attachment"""
     appointment = get_object_or_404(Appointment, id=appointment_id)
 
     if appointment.status != 'confirmed':
@@ -188,8 +183,8 @@ SecureFlow Team
 
 @login_required(login_url="/auth/login/")
 @user_passes_test(is_staff)
+# Mark appointment as completed
 def admin_complete_appointment(request, appointment_id):
-    """Mark appointment as completed"""
     appointment = get_object_or_404(Appointment, id=appointment_id)
 
     appointment.status = 'completed'

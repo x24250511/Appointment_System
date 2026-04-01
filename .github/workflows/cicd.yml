@@ -6,7 +6,7 @@ on:
       - main
 
 jobs:
-  # 1) LINT JOB (PYLINT)
+  # LINT JOB (PYLINT)
   lint:
     runs-on: ubuntu-latest
     name: Lint Code (pylint)
@@ -23,7 +23,7 @@ jobs:
       - name: Run pylint
         run: pylint . --exit-zero 
 
-  # 2) SECURITY JOB (BANDIT + SAFETY)
+  #  SECURITY JOB (BANDIT + SAFETY)
   security:
     runs-on: ubuntu-latest
     needs: lint
@@ -40,7 +40,7 @@ jobs:
       - name: Safety (dependency vulnerabilities)
         run: safety check || true
 
-  # 3) TEST JOB (PYTEST + COVERAGE)
+  #  TEST JOB (PYTEST + COVERAGE)
   tests:
     runs-on: ubuntu-latest
     needs: security
@@ -65,7 +65,7 @@ jobs:
           path: coverage.xml
           if-no-files-found: warn
 
-  # 4) SONARCLOUD JOB 
+  #  SONARCLOUD JOB 
   sonar:
     runs-on: ubuntu-latest
     needs: tests
@@ -87,7 +87,7 @@ jobs:
             -Dsonar.python.version=3.11
             -Dsonar.python.coverage.reportPaths=coverage.xml
 
-  # 5) DEPLOY TO AWS ELASTIC BEANSTALK
+  #  DEPLOY TO AWS ELASTIC BEANSTALK
   deploy:
     runs-on: ubuntu-latest
     needs: sonar  
@@ -120,7 +120,7 @@ jobs:
           region: us-east-1
           deployment_package: application.zip
 
-  # 6) OWASP ZAP SECURITY SCAN
+  # OWASP ZAP SECURITY SCAN
   zap_scan:
     runs-on: ubuntu-latest
     needs: deploy

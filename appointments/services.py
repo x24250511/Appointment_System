@@ -5,7 +5,7 @@ import json
 from decouple import config
 
 
-class LocationService:
+class LocationService:  # Public API integration for geocoding
 
     BASE_URL = "https://nominatim.openstreetmap.org"
 
@@ -213,7 +213,6 @@ class PDFService:
             except:
                 time_display = str(appointment.appointment_time)
 
-            # Build HTML content
             html_content = f"""<!DOCTYPE html>
 <html>
 <head>
@@ -318,15 +317,13 @@ class PDFService:
             }
 
 
-class AppointmentCreatorService:
-    """Integrate with Appointment Creator API - Full Dynamic Slot Management"""
+class AppointmentCreatorService:  # classmate 2 Appointment API integration
 
     BASE_URL = settings.APPOINTMENT_SERVICE_URL
     API_KEY = getattr(settings, 'APPOINTMENT_API_KEY', '')
 
     @staticmethod
     def create_provider(name):
-        """Create a service provider in external system"""
         try:
             print(f"\n{'='*60}")
             print(f"[APPOINTMENT API] Creating provider: {name}")
@@ -361,8 +358,8 @@ class AppointmentCreatorService:
             return None
 
     @staticmethod
+    # get provider ID from settings based on industry
     def get_provider_id_for_industry(industry):
-        """Get provider ID based on industry"""
         from django.conf import settings
 
         provider_map = {
@@ -374,8 +371,8 @@ class AppointmentCreatorService:
         return provider_map.get(industry)
 
     @staticmethod
+    # Generate slots 30 mins from 9am to 6pm for a given date
     def generate_slots_for_date(provider_id, date):
-        """Generate 30-minute slots from 9 AM to 6 PM"""
         try:
             print(f"\n{'='*60}")
             print(

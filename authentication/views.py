@@ -2,13 +2,13 @@ from django.shortcuts import render, redirect
 from django.contrib.auth import authenticate, login, logout
 from django.contrib import messages
 from django.contrib.auth.decorators import login_required
-from .models import UserProfile, OTPVerification  # Import both models
+from .models import UserProfile, OTPVerification
 from django.contrib.auth.models import User
 from .services import OTPService
 
 
 def home_view(request):
-    #Home page
+    # Home page
     return render(request, 'home.html')
 
 
@@ -116,7 +116,7 @@ def login_verify_otp_view(request):
 
 
 def register_view(request):
-    #Register page - Simple registration without OTP
+    # Register page - Simple registration without OTP
     if request.user.is_authenticated:
         return redirect('dashboard')
 
@@ -165,8 +165,7 @@ def register_view(request):
 
 
 @login_required
-def logout_view(request):
-    """Logout view with OTP cleanup"""
+def logout_view(request):  # Logout view - cleaning up OTP records on logout
     user_email = request.user.email
 
     # Clear any pending OTP records
@@ -182,5 +181,5 @@ def logout_view(request):
 
 @login_required
 def profile_view(request):
-    #User profile page
+    # User profile page
     return render(request, 'auth/profile.html')
