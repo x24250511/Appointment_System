@@ -200,20 +200,20 @@ class PDFService:
             print(f"\n{'='*60}")
             print(f"[PDF] Generating PDF for appointment {appointment.id}")
 
-            # Convert date and time safely
-            if isinstance(appointment.appointment_date, str):
-                date_display = appointment.appointment_date
-            else:
+            # Format dates safely
+            try:
                 date_display = appointment.appointment_date.strftime(
                     '%B %d, %Y')
+            except:
+                date_display = str(appointment.appointment_date)
 
-            if isinstance(appointment.appointment_time, str):
-                time_display = appointment.appointment_time
-            else:
+            try:
                 time_display = appointment.appointment_time.strftime(
                     '%I:%M %p')
+            except:
+                time_display = str(appointment.appointment_time)
 
-            # Create HTML content
+            # Build HTML content
             html_content = f"""
             <!DOCTYPE html>
             <html>
@@ -254,7 +254,7 @@ class PDFService:
                 
                 <div class="info">
                     <p><span class="label">Status:</span> <span class="value">{appointment.get_status_display()}</span></p>
-                    <p><span class="label">Created:</span> <span class="value">{appointment.created_at.strftime('%B %d, %Y %I:%M %p') if hasattr(appointment.created_at, 'strftime') else str(appointment.created_at)}</span></p>
+                    <p><span class="label">Created:</span> <span class="value">{appointment.created_at.strftime('%B %d, %Y %I:%M %p')}</span></p>
                 </div>
                 
                 <div class="footer">
@@ -265,8 +265,12 @@ class PDFService:
             </html>
             """
 
-            print(f"[PDF] Sending HTML to PDF API")
+            print(
+                f"[PDF] Sending HTML to PDF API (length: {len(html_content)} chars)")
             print(f"[PDF] URL: {PDFService.PDF_API_URL}")
+
+            # Print first 500 chars of HTML for debugging
+            print(f"[PDF] HTML Preview: {html_content[:500]}...")
 
             # Make API request with JSON payload
             response = requests.post(
@@ -277,18 +281,30 @@ class PDFService:
             )
 
             print(f"[PDF] Response Status: {response.status_code}")
+            print(f"[PDF] Response Headers: {dict(response.headers)}")
+            print(f"[PDF] Response Length: {len(response.content)} bytes")
 
             if response.status_code == 200:
-                print(f"[PDF] PDF generated successfully")
-                print(f"{'='*60}\n")
-                return {
-                    'success': True,
-                    'pdf_data': response.content,
-                    'content_type': 'application/pdf'
-                }
+                if len(response.content) > 0:
+                    print(
+                        f"[PDF] PDF generated successfully ({len(response.content)} bytes)")
+                    print(f"{'='*60}\n")
+                    return {
+                        'success': True,
+                        'pdf_data': response.content,
+                        'content_type': 'application/pdf'
+                    }
+                else:
+                    print(f"[PDF] ERROR: PDF is empty (0 bytes)")
+                    print(f"[PDF] Response text: {response.text[:500]}")
+                    print(f"{'='*60}\n")
+                    return {
+                        'success': False,
+                        'error': 'PDF generation returned empty file'
+                    }
             else:
                 print(f"[PDF] Failed with status {response.status_code}")
-                print(f"[PDF] Response: {response.text}")
+                print(f"[PDF] Response: {response.text[:500]}")
                 print(f"{'='*60}\n")
                 return {
                     'success': False,
