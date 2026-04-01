@@ -73,13 +73,12 @@ class LocationService:
 
 
 class EmailService:  # Classmate 1 Email service integration
-    EMAIL_API_URL = "http://Email-API-env.eba-v7a7r7mg.eu-west-1.elasticbeanstalk.com/api/send/"
+    EMAIL_API_URL = "https://dfz5aavjml.execute-api.us-east-1.amazonaws.com/prod/api/send/"
 
     @staticmethod
     def send_email(to_email, subject, body, from_email='noreply@secureflow.com', from_name='SecureFlow'):
         try:
             print(f"[EMAIL] Attempting to send to: {to_email}")
-            # field names: to_email, subject, message, from_email
             payload = {
                 'to_email': to_email,
                 'subject': subject,
@@ -89,33 +88,58 @@ class EmailService:  # Classmate 1 Email service integration
             print(f"[EMAIL] Payload: {payload}")
             response = requests.post(
                 EmailService.EMAIL_API_URL,
-                data=payload,  # form-data format
+                data=payload,
                 timeout=30
             )
             print(f"[EMAIL] Status: {response.status_code}")
             print(f"[EMAIL] Response: {response.text}")
 
             if response.status_code == 200:
-                try:
-                    response_data = response.json()
-                    if response_data.get('status') == 'success':
-                        print(f"[EMAIL] ✓ Success: Email sent to {to_email}")
-                        return {'success': True, 'message': 'Email sent successfully'}
-                    else:
-                        error_msg = response_data.get(
-                            'message', 'Unknown error')
-                        print(f"[EMAIL] Failed: {error_msg}")
-                        return {'success': False, 'message': error_msg}
-                except:
-                    print(f"[EMAIL] Success (non-JSON response)")
-                    return {'success': True, 'message': 'Email sent'}
+                return {'success': True}
             else:
-                print(f"[EMAIL]  Failed with status {response.status_code}")
-                return {'success': False, 'message': f'Status {response.status_code}'}
+                return {'success': False, 'error': response.text}
 
         except Exception as e:
-            print(f"[EMAIL] Exception: {str(e)}")
-            return {'success': False, 'message': str(e)}
+            print(f"[EMAIL] Error: {str(e)}")
+            return {'success': False, 'error': str(e)}
+
+    @staticmethod
+    def send_email_with_attachment(to_email, subject, body, pdf_data, filename, from_name='SecureFlow'):
+        """Send email with PDF attachment"""
+        try:
+            print(f"[EMAIL] Sending email with attachment to: {to_email}")
+
+            # Prepare form data
+            data = {
+                'to_email': to_email,
+                'subject': subject,
+                'message': body,
+                'from_name': from_name
+            }
+
+            # Prepare file attachment
+            files = {
+                'attachment': (filename, pdf_data, 'application/pdf')
+            }
+
+            response = requests.post(
+                EmailService.EMAIL_API_URL,
+                data=data,
+                files=files,
+                timeout=30
+            )
+
+            print(f"[EMAIL] Status: {response.status_code}")
+            print(f"[EMAIL] Response: {response.text}")
+
+            if response.status_code == 200:
+                return {'success': True}
+            else:
+                return {'success': False, 'error': response.text}
+
+        except Exception as e:
+            print(f"[EMAIL] Error: {str(e)}")
+            return {'success': False, 'error': str(e)}
 
     @staticmethod
     def send_otp_email(email, otp_code):

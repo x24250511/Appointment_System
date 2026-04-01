@@ -1,6 +1,6 @@
 from django.contrib import admin
 from .models import Appointment, AppointmentHistory
-from .services import EmailService
+from .services import EmailService, PDFService
 
 
 @admin.register(Appointment)
@@ -30,7 +30,7 @@ class AppointmentAdmin(admin.ModelAdmin):
     actions = ['mark_confirmed', 'mark_completed', 'mark_cancelled']
 
     def mark_confirmed(self, request, queryset):
-        """Confirm selected appointments and send email"""
+        """Confirm selected appointments and send email with PDF attachment"""
         count = 0
         for appointment in queryset:
             if appointment.status != 'confirmed':
@@ -45,7 +45,21 @@ class AppointmentAdmin(admin.ModelAdmin):
                     notes='Appointment confirmed by admin'
                 )
 
-                # Send confirmation email
+                # Generate PDF
+                pdf_data = None
+                try:
+                    pdf_result = PDFService.generate_appointment_pdf(
+                        appointment)
+                    if pdf_result.get('success'):
+                        appointment.pdf_generated = True
+                        pdf_data = pdf_result.get('pdf_data')
+                        appointment.save()
+                        print(
+                            f"[PDF] Successfully generated for appointment {appointment.id}")
+                except Exception as e:
+                    print(f"[PDF] Generation failed: {e}")
+
+                # Send confirmation email with PDF attachment
                 try:
                     subject = f"✓ Appointment Confirmed: {appointment.title}"
                     body = f"""Dear {appointment.user.username},
@@ -71,11 +85,29 @@ If you need to reschedule or cancel, please contact us as soon as possible.
 Best regards,
 SecureFlow Team
 """
-                    EmailService.send_email(
-                        appointment.user.email, subject, body, from_name="SecureFlow Appointments")
-                    appointment.email_sent = True
-                    appointment.save()
-                    count += 1
+
+                    # Send with or without PDF attachment
+                    if pdf_data:
+                        result = EmailService.send_email_with_attachment(
+                            appointment.user.email,
+                            subject,
+                            body,
+                            pdf_data,
+                            f'appointment_{appointment.id}.pdf',
+                            from_name="SecureFlow Appointments"
+                        )
+                    else:
+                        result = EmailService.send_email(
+                            appointment.user.email,
+                            subject,
+                            body,
+                            from_name="SecureFlow Appointments"
+                        )
+
+                    if result.get('success'):
+                        appointment.email_sent = True
+                        appointment.save()
+                        count += 1
                 except Exception as e:
                     print(f"Failed to send email: {e}")
 
